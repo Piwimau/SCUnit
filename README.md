@@ -62,8 +62,8 @@ SCUnit is written in pure C23 and does not really have any external dependencies
 C standard library and a compliant compiler. However, it does use two features that might not be
 available on all platforms:
 
-- The automatic discovery and registration of suites and tests is implemented using a compiler-
-  specific attribute called `__attribute__((constructor))` (or `[[gnu::constructor]]` in the new
+- The automatic discovery and registration of suites and tests is implemented using a compiler-specific
+  attribute called `__attribute__((constructor))` (or `[[gnu::constructor]]` in the new
   syntax), which causes an annotated function to be run before `main()` is executed. This attribute
   is supported by GCC and Clang, but not by MSVC, which shouldn't be too much of a problem since it
   doesn't have adequate C23 support at the moment anyway. If you absolutely need the automatic
@@ -117,7 +117,7 @@ This is hard to answer, since I don't know the exact structure or build systems 
 project. However, these are the general steps you need to follow:
 
 1. Build your preferred variant of SCUnit and place it in an appropriate directory along with the
-   with the [headers](include/SCUnit/).
+   [headers](include/SCUnit/).
 
 2. Include the main header [`<SCUnit/scunit.h>`](include/SCUnit/scunit.h) in your source files and
    start writing tests.
