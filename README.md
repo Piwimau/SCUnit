@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="resources/scunit.png" alt="SCUnit Logo"/>
+    <img src="resources/scunit.png" alt="SCUnit Logo" width="50%"/>
 </p>
 
 SCUnit is a small, easy-to-use unit testing framework for C. With no complex configuration or
