@@ -8,14 +8,14 @@
  * related tests to be executed. SCUnit provides two ways of working with suites and tests.
  * A brief explanation for both of them:
  *
- * - One way is to use convenient macros such as `SCUNIT_SUITE()` and `SCUNIT_TEST()` which do some
+ * * One way is to use convenient macros such as `SCUNIT_SUITE()` and `SCUNIT_TEST()` which do some
  *   clever tricks under the hood. If you use these in conjunction with the `scunit_main()` function
  *   from `<SCUnit/scunit.h>`, all suites and tests will be discovered, registered and run
- *   automatically without you having to setup anything. Note however that they rely on a compiler-
- *   specific (though widely supported) attribute called `__attribute__((constructor))` (or
- *   ``[[gnu::constructor]]` in the new syntax) to implement the automatic registration.
+ *   automatically without you having to setup anything. Note however that they rely on a
+ *   compiler-specific (though widely supported) attribute called `__attribute__((constructor))`
+ *   (or ``[[gnu::constructor]]` in the new syntax) to implement the automatic registration.
  *
- * - If you are not a fan of macro tricks, or your compiler does not support the attribute, you may
+ * * If you are not a fan of macro tricks, or your compiler does not support the attribute, you may
  *   also use the normal function API (which is used by the macros under the hood anyway, but in a
  *   convenient, automated fashion) to register and run suites and tests manually.
  *

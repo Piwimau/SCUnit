@@ -12,20 +12,20 @@
  * SCUnit provides several useful assertion macros, which can be grouped according to their intended
  * usage or the types they operate on:
  *
- * - `SCUNIT_PASS()`, `SCUNIT_SKIP()` and `SCUNIT_FAIL()` terminate the current test with the
+ * * `SCUNIT_PASS()`, `SCUNIT_SKIP()` and `SCUNIT_FAIL()` terminate the current test with the
  *   corresponding `SCUnitResult`, which may be useful for debugging purposes or to temporarily
  *   circumvent subsequent assertions.
  *
- * - `SCUNIT_ASSERT()` is a generic assertion macro similar to the standard C `assert()` from
+ * * `SCUNIT_ASSERT()` is a generic assertion macro similar to the standard C `assert()` from
  *   `<assert.h>`. It supports arbitrary conditions, as long as the expression if of a scalar type.
  *
- * - `SCUNIT_ASSERT_TRUE()` and `SCUNIT_ASSERT_FALSE()` should be used instead of `SCUNIT_ASSERT()`
+ * * `SCUNIT_ASSERT_TRUE()` and `SCUNIT_ASSERT_FALSE()` should be used instead of `SCUNIT_ASSERT()`
  *   for readability whenever an expression conceptually evaluates to a boolean value.
  *
- * - `SCUNIT_ASSERT_NULL()` and `SCUNIT_ASSERT_NOT_NULL()` are intended to be used with arbitrary
+ * * `SCUNIT_ASSERT_NULL()` and `SCUNIT_ASSERT_NOT_NULL()` are intended to be used with arbitrary
  *   pointer types and instead of the basic `SCUNIT_ASSERT()` for reasons of readability.
  *
- * - `SCUNIT_ASSERT_EQUAL()`, `SCUNIT_ASSERT_NOT_EQUAL()`, `SCUNIT_ASSERT_LESS()` and so on allow
+ * * `SCUNIT_ASSERT_EQUAL()`, `SCUNIT_ASSERT_NOT_EQUAL()`, `SCUNIT_ASSERT_LESS()` and so on allow
  *   for testing relational expressions with arbitrary scalar types.
  *
  * These are of course not all, see below for the full set of assertions.

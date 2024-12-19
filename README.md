@@ -33,43 +33,43 @@ int main(int argc, char** argv) {
 
 Some of the key features for which you might consider using SCUnit include:
 
-- Automatic discovery and registration of tests and suites, no manual setup required.
-- A minimal, yet useful set of assertions for checking various conditions in tests.
-- Ability to group logically related tests into suites. Particularly large suites can even be
+* Automatic discovery and registration of tests and suites, no manual setup required.
+* A minimal, yet useful set of assertions for checking various conditions in tests.
+* Ability to group logically related tests into suites. Particularly large suites can even be
   distributed across multiple source files for readability.
-- Accurate and optionally colored diagnostic messages on `stdout` and `stderr` that not only inform
+* Accurate and optionally colored diagnostic messages on `stdout` and `stderr` that not only inform
   you of the status of a test, but also include execution time measurements and some helpful context
   when an assertion fails.
-- Ability to configure SCUnit (if required at all) by passing command line arguments to the test
+* Ability to configure SCUnit (if required at all) by passing command line arguments to the test
   executable.
 
 Some other nice features that probably aren't that relevant for normal users, but might be for you
 if you want to dive deeper and take full advantage of SCUnit:
 
-- A well-documented API (down to the very last implementation detail) that allows you to understand
+* A well-documented API (down to the very last implementation detail) that allows you to understand
   why SCUnit is written the way it is and how it is intended to be used.
-- Consistent and predictable error handling using a custom error enumeration type.
-- Ability to manually register and run suites and tests using a normal function API if you need full
+* Consistent and predictable error handling using a custom error enumeration type.
+* Ability to manually register and run suites and tests using a normal function API if you need full
   control.
-- Ability to replace standard functions for dynamic memory allocation for debugging purposes.
-- A small utility module for printing formatted and optionally colored strings to streams and
+* Ability to replace standard functions for dynamic memory allocation for debugging purposes.
+* A small utility module for printing formatted and optionally colored strings to streams and
   buffers.
-- A simple timer for measuring the elapsed wall or CPU time required to execute a block of code.
+* A simple timer for measuring the elapsed wall or CPU time required to execute a block of code.
 
 ## How do you build SCUnit?
 
-SCUnit is written in pure C23 and does not really have any external dependencies other than the
-C standard library and a compliant compiler. However, it does use two features that might not be
-available on all platforms:
+SCUnit is written in pure C23 and does not really have any dependencies other than the C standard
+library and a compliant compiler. However, it does use two features that might not be available on
+all platforms:
 
-- The automatic discovery and registration of suites and tests is implemented using a compiler-specific
+* The automatic discovery and registration of suites and tests is implemented using a compiler-specific
   attribute called `__attribute__((constructor))` (or `[[gnu::constructor]]` in the new
   syntax), which causes an annotated function to be run before `main()` is executed. This attribute
   is supported by GCC and Clang, but not by MSVC, which shouldn't be too much of a problem since it
   doesn't have adequate C23 support at the moment anyway. If you absolutely need the automatic
   registration in conjunction with MSVC, you should be able to find various workarounds related to
   linker sections fairly easily on internet.
-- The simple timer used by SCUnit to measure the elapsed wall and CPU time of tests and suites is
+* The simple timer used by SCUnit to measure the elapsed wall and CPU time of tests and suites is
   implemented using the POSIX function [`clock_gettime()`](https://man7.org/linux/man-pages/man3/clock_gettime.3.html).
   This is mainly due to the lack of other suitable and portable options in the C standard library.
   Generally speaking, it should be available on MacOS and Linux, but not on Windows. In the latter
@@ -143,14 +143,14 @@ handling, and being written and intended for use in pure C.
 Although there is no official roadmap for the future, I plan to continue developing SCUnit as I gain
 practical experience using it in my own side projects. Some things I have already thought about:
 
-- Adding specialized assertion macros for strings, arrays, memory segments or bitwise operations.
-- Improving the diagnostic messages of failed asserts by including the actual and expected values
+* Adding specialized assertion macros for strings, arrays, memory segments or bitwise operations.
+* Improving the diagnostic messages of failed asserts by including the actual and expected values
   automatically (this is hard to do in C as you need the correct format specifier for every
   possible type to be used in such an assertion).
-- General improvements to the internal implementation and source code documentation.
-- Adding support for parameterized tests or other popular features of similar frameworks.
-- Adding a lightweight, easy-to-read documentation and examples for users of the library.
-- Improving portability across platforms and compilers.
+* General improvements to the internal implementation and source code documentation.
+* Adding support for parameterized tests or other popular features of similar frameworks.
+* Adding a lightweight, easy-to-read documentation and examples for users of the library.
+* Improving portability across platforms and compilers.
 
 ## Contributing
 

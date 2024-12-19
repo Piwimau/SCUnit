@@ -18,11 +18,11 @@
  * `scunit_timer_wallTime()` and `scunit_timer_cpuTime()` respectively. The difference is the
  * following:
  *
- * - Wall time (also known as real or wall-clock time) measures the actual time it took for a
+ * * Wall time (also known as real or wall-clock time) measures the actual time it took for a
  *   calculation to run from start to finish. This is useful for evaluating the overall performance
  *   or usability of an application.
  *
- * - CPU time only measures the time the processor is actively working on the calculation. As a
+ * * CPU time only measures the time the processor is actively working on the calculation. As a
  *   result, CPU time may be considerably less than wall time if the process had to wait for system
  *   resources or due to unlucky scheduling. However, CPU time may also be considerably larger than
  *   wall time, as is often the case when running multi-threaded applications on a multi-core
@@ -42,11 +42,11 @@
  * [MSYS2](https://www.msys2.org/) as a solution). This is mainly due to the lack of other portable
  * options in the C standard library:
  *
- * - [`clock()`](https://en.cppreference.com/w/c/chrono/clock) from `<time.h>` is supposed to return
+ * * [`clock()`](https://en.cppreference.com/w/c/chrono/clock) from `<time.h>` is supposed to return
  *   the approximate CPU time. However, it actually returns the wall time on Windows and so it
  *   cannot be used reliably for at one of the two different measured times.
  *
- * - [`timespec_get()`](https://en.cppreference.com/w/c/chrono/timespec_get) is part of the standard
+ * * [`timespec_get()`](https://en.cppreference.com/w/c/chrono/timespec_get) is part of the standard
  *   since `C11` and also available via `<time.h>`, but this function can only be used to calculate
  *   the wall time.
  *
