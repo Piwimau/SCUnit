@@ -17,9 +17,23 @@
 #include <SCUnit/memory.h>
 
 struct SCUnitContext {
+
+    /** @brief Result of this `SCUnitContext`. */
     SCUnitResult result;
+
+    /**
+     * @brief Size of the `message` buffer of this `SCUnitContext` (including the terminating `\0`
+     * byte).
+     */
     int64_t size;
+
+    /**
+     * @brief Message of this `SCUnitContext`, initially an empty string.
+     *
+     * @note This is a dynamically allocated string with a capacity of `size` bytes.
+     */
     char* message;
+
 };
 
 /** @brief Size used for initially allocating a buffer. */
@@ -169,7 +183,10 @@ SCUnitError scunit_context_appendColoredMessage(
  * if `*buffer` is `nullptr` and `*size` is not equal to zero or if `*buffer` is not `nullptr` and
  * `*size` is equal to zero, except in these cases `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` is returned.
  *
- * @warning If resizing `*buffer` fails due to an out-of-memory condition, both `*buffer` and
+ * @warning This function assumes that the stream content is UTF-8 encoded and processes the input
+ * accordingly. If the input contains invalid UTF-8 sequences, the behavior is undefined.
+ *
+ * If resizing `*buffer` fails due to an out-of-memory condition, both `*buffer` and
  * `*size` retain the state they were in before the failed operation and
  * `SCUNIT_ERROR_OUT_OF_MEMORY` is returned. Note that the content of the buffer pointed to by
  * `*buffer` is indeterminate in this case. Any characters read from `stream` in the meantime are
@@ -181,6 +198,7 @@ SCUnitError scunit_context_appendColoredMessage(
  * and any characters read from `stream` in the meantime are not recovered.
  *
  * @param[in, out] stream    Stream to read a single line from, which must be opened in text mode.
+ *                           The stream's content is assumed to be UTF-8 encoded.
  * @param[in, out] buffer    Dynamically allocated buffer to write the line to (resized as
  *                           necessary).
  * @param[in, out] size      Size of the buffer (including the terminating `\0` byte). The size is

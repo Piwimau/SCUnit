@@ -10,7 +10,7 @@
  *
  * However, if you want to do something more sophisticated or implement a custom behavior,
  * you may use the `SCUnitContext` to your advantage. Every test for SCUnit has the following
- * function signature (as seen in `<SCUnit/suite.h>`):
+ * function signature (as can be seen in `<SCUnit/suite.h>`):
  *
  * void exampleTest([[maybe_unused]] SCUnitContext* scunit_context);
  *
@@ -83,7 +83,7 @@ SCUnitError scunit_context_new(SCUnitContext** context);
 SCUnitError scunit_context_reset(SCUnitContext* context);
 
 /**
- * @brief Gets the `SCUnitResult` of a test's `SCUnitContext`.
+ * @brief Gets the `SCUnitResult` of an `SCUnitContext`.
  *
  * @param[in]  context `SCUnitContext` to examine.
  * @param[out] result  `SCUnitResult` of the test's `SCUnitContext`.
@@ -93,7 +93,7 @@ SCUnitError scunit_context_reset(SCUnitContext* context);
 SCUnitError scunit_context_getResult(const SCUnitContext* context, SCUnitResult* result);
 
 /**
- * @brief Sets the `SCUnitResult` of a test's `SCUnitContext`.
+ * @brief Sets the `SCUnitResult` of an `SCUnitContext`.
  *
  * @param[in, out] context `SCUnitContext` to modify.
  * @param[in]      result  New `SCUnitResult` of the test's `SCUnitContext`.
@@ -104,7 +104,7 @@ SCUnitError scunit_context_getResult(const SCUnitContext* context, SCUnitResult*
 SCUnitError scunit_context_setResult(SCUnitContext* context, SCUnitResult result);
 
 /**
- * @brief Gets the message of a test's `SCUnitContext`.
+ * @brief Gets the message of an `SCUnitContext`.
  *
  * @warning The message returned via the `message` parameter is a direct reference to the internal
  * message of the `SCUnitContext`. It must not be modified nor deallocated manually.
@@ -117,7 +117,7 @@ SCUnitError scunit_context_setResult(SCUnitContext* context, SCUnitResult result
 SCUnitError scunit_context_getMessage(const SCUnitContext* context, const char** message);
 
 /**
- * @brief Overwrites the message of a test's `SCUnitContext` with a given formatted string.
+ * @brief Overwrites the message of an `SCUnitContext` with a given formatted string.
  *
  * @param[in, out] context `SCUnitContext` to modify.
  * @param[in]      format  A null-terminated format string following the same conventions as the
@@ -132,8 +132,7 @@ SCUnitError scunit_context_getMessage(const SCUnitContext* context, const char**
 SCUnitError scunit_context_setMessage(SCUnitContext* context, const char* format, ...);
 
 /**
- * @brief Overwrites the message of a test's `SCUnitContext` with a given formatted and colored
- * string.
+ * @brief Overwrites the message of an `SCUnitContext` with a given formatted and colored string.
  *
  * @note This function respects the current `SCUnitColoredOutput` state set by calling
  * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
@@ -162,7 +161,7 @@ SCUnitError scunit_context_setColoredMessage(
 );
 
 /**
- * @brief Appends a given formatted string to the message of a test's `SCUnitContext`.
+ * @brief Appends a given formatted string to the message of an `SCUnitContext`.
  *
  * @param[in, out] context `SCUnitContext` to modify.
  * @param[in]      format  A null-terminated format string following the same conventions as the
@@ -177,7 +176,7 @@ SCUnitError scunit_context_setColoredMessage(
 SCUnitError scunit_context_appendMessage(SCUnitContext* context, const char* format, ...);
 
 /**
- * @brief Appends a given formatted and colored string to the message of a test's `SCUnitContext`.
+ * @brief Appends a given formatted and colored string to the message of an `SCUnitContext`.
  *
  * @note This function respects the current `SCUnitColoredOutput` state set by calling
  * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
@@ -206,13 +205,15 @@ SCUnitError scunit_context_appendColoredMessage(
 );
 
 /**
- * @brief Appends the file context around a relevant line to the message of a test's
- * `SCUnitContext`.
+ * @brief Appends the file context around a relevant line to the message of an `SCUnitContext`.
  *
  * @note This function respects the current `SCUnitColoredOutput` state set by calling
  * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
  * `foreground` and `background` are ignored and the default terminal color is used instead.
  * See `<SCUnit/print.h>` for more information.
+ *
+ * @warning This function assumes that the file content is UTF-8 encoded and processes the input
+ * accordingly. If the input contains invalid UTF-8 sequences, the behavior is undefined.
  *
  * @param[in, out] context  `SCUnitContext` to modify.
  * @param[in]      filename Name of the file to read the context from.
