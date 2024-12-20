@@ -307,57 +307,16 @@ SCUnitError scunit_context_appendFileContext(
         if (error != SCUNIT_ERROR_NONE) {
             goto fail;
         }
-        // We treat the relevant line specially by printing it in red and with some error squiggles
-        // underneath to highlight were an assertion failed.
-        if (i == line) {
-            error = scunit_rasnprintfc(
-                &context->message,
-                &context->size,
-                SCUNIT_COLOR_DARK_RED,
-                SCUNIT_COLOR_DARK_DEFAULT,
-                "%s\n",
-                buffer
-            );
-            if (error != SCUNIT_ERROR_NONE) {
-                goto fail;
-            }
-            error = scunit_rasnprintf(
-                &context->message,
-                &context->size,
-                "  %*s   ",
-                maxLineNumberWidth,
-                ""
-            );
-            if (error != SCUNIT_ERROR_NONE) {
-                goto fail;
-            }
-            // Reuse the buffer of the relevant line and replace everything after the leading white
-            // space with error squiggles.
-            char* s = buffer;
-            while ((*s != '\0') && isspace(*s)) {
-                s++;
-            }
-            while (*s != '\0') {
-                *s++ = '~';
-            }
-            error = scunit_rasnprintfc(
-                &context->message,
-                &context->size,
-                SCUNIT_COLOR_DARK_RED,
-                SCUNIT_COLOR_DARK_DEFAULT,
-                "%s\n",
-                buffer
-            );
-            if (error != SCUNIT_ERROR_NONE) {
-                goto fail;
-            }
-        }
-        else {
-            // Context lines around the relevant line are just printed the way they are.
-            error = scunit_rasnprintf(&context->message, &context->size, "%s\n", buffer);
-            if (error != SCUNIT_ERROR_NONE) {
-                goto fail;
-            }
+        error = scunit_rasnprintfc(
+            &context->message,
+            &context->size,
+            (i == line) ? SCUNIT_COLOR_DARK_RED : SCUNIT_COLOR_DARK_DEFAULT,
+            SCUNIT_COLOR_DARK_DEFAULT,
+            "%s\n",
+            buffer
+        );
+        if (error != SCUNIT_ERROR_NONE) {
+            goto fail;
         }
     }
     if (fclose(file) == EOF) {
