@@ -51,7 +51,7 @@ if you want to dive deeper and take full advantage of SCUnit:
 * Consistent and predictable error handling using a custom error enumeration type.
 * Ability to manually register and run suites and tests using a normal function API if you need full
   control.
-* Ability to replace standard functions for dynamic memory allocation for debugging purposes.
+* Ability to replace the functions for dynamic memory management (e. g. for debugging purposes).
 * A small utility module for printing formatted and optionally colored strings to streams and
   buffers.
 * A simple timer for measuring the elapsed wall or CPU time required to execute a block of code.
@@ -62,16 +62,17 @@ SCUnit is written in pure C23 and does not really have any dependencies other th
 library and a compliant compiler. However, it does use two features that might not be available on
 all platforms:
 
-* The automatic discovery and registration of suites and tests is implemented using a compiler-specific
-  attribute called `__attribute__((constructor))` (or `[[gnu::constructor]]` in the new
-  syntax), which causes an annotated function to be run before `main()` is executed. This attribute
-  is supported by GCC and Clang, but not by MSVC, which shouldn't be too much of a problem since it
-  doesn't have adequate C23 support at the moment anyway. If you absolutely need the automatic
-  registration in conjunction with MSVC, you should be able to find various workarounds related to
-  linker sections fairly easily on internet.
+* The automatic discovery and registration of suites and tests is implemented using a
+  compiler-specific attribute called `__attribute__((constructor))` (or `[[gnu::constructor]]` in
+  the new syntax), which causes an annotated function to be run before `main()` is executed.
+  This attribute is supported by GCC and Clang, but not by MSVC, which shouldn't be too much of a
+  problem since it doesn't have adequate C23 support at the moment anyway. If you absolutely need
+  the automatic registration in conjunction with MSVC, you should be able to find various
+  workarounds related to linker sections fairly easily on internet.
 * The simple timer used by SCUnit to measure the elapsed wall and CPU time of tests and suites is
-  implemented using the POSIX function [`clock_gettime()`](https://man7.org/linux/man-pages/man3/clock_gettime.3.html).
-  This is mainly due to the lack of other suitable and portable options in the C standard library.
+  implemented using the POSIX function
+  [`clock_gettime()`](https://man7.org/linux/man-pages/man3/clock_gettime.3.html). This is mainly
+  due to the lack of other suitable and portable options in the C standard library.
   Generally speaking, it should be available on MacOS and Linux, but not on Windows. In the latter
   case, I can highly recommend [MSYS2](https://www.msys2.org/) as a solution. Another alternative
   would be to rely on a platform-specific, more feature-rich timer and change the underlying
@@ -160,9 +161,9 @@ see what I can do.
 
 ## Acknowledgements
 
-I got the idea to create SCUnit when I stumbled across [this](https://www.youtube.com/watch?v=z-uWt5wVVkU)
-nice talk by Benno Rice, in which he presented some of the issues related to unit testing C code
-and two example frameworks one could use.
+I got the idea to create SCUnit when I stumbled across
+[this](https://www.youtube.com/watch?v=z-uWt5wVVkU) nice talk by Benno Rice, in which he presented
+some of the issues related to unit testing C code and two example frameworks one could use.
 
 SCUnit has been inspired by many other existing frameworks, including (but not limited to)
 [Google Test](https://github.com/google/googletest), [Check](https://github.com/libcheck/check),
