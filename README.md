@@ -24,6 +24,7 @@ SCUNIT_TEST(ExampleSuite, ExampleTest) {
     SCUNIT_ASSERT_NOT_NULL(widget);
     SCUNIT_ASSERT_TRUE(widget->isAvailable);
     SCUNIT_ASSERT_GREATER_OR_EQUAL(widget->capacity, 42);
+    widget_free(widget);
 }
 
 int main(int argc, char** argv) {
