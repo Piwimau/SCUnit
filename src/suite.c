@@ -220,7 +220,7 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
         // not guarantee the order in which tests or suites are run anywhere, so we are free to
         // implement this however we want.
         const SCUnitTest* test = &suite->tests[suite->registeredTests - 1 - i];
-        scunit_printf("[%" PRId64 "/%" PRId64 "] Running test ", i + 1, suite->registeredTests);
+        scunit_printf("(%" PRId64 "/%" PRId64 ") Running test ", i + 1, suite->registeredTests);
         scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "%s", test->name);
         scunit_printf("... ");
         // Reuse the context for every test to avoid unnecessary memory allocations.
@@ -266,7 +266,7 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
         scunit_timer_cpuTime(testTimer, &cpuTimeMeasurement);
         scunit_fprintf(
             (result == SCUNIT_RESULT_FAIL) ? stderr : stdout,
-            " Wall: %.3F %s, CPU: %.3F %s\n",
+            " [Wall: %.3F %s, CPU: %.3F %s]\n",
             wallTimeMeasurement.time,
             wallTimeMeasurement.timeUnitString,
             cpuTimeMeasurement.time,
@@ -275,7 +275,10 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
         const char* message;
         scunit_context_getMessage(context, &message);
         if (*message != '\0') {
-            scunit_fprintf((result == SCUNIT_RESULT_FAIL) ? stderr : stdout, message);
+            scunit_fprintf((result == SCUNIT_RESULT_FAIL) ? stderr : stdout, "%s", message);
+        }
+        else if (i == (suite->registeredTests - 1)) {
+            scunit_printf("\n");
         }
         if (suite->testTeardown != nullptr) {
             suite->testTeardown();
@@ -295,7 +298,7 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
     scunit_timer_wallTime(suiteTimer, &wallTimeMeasurement);
     scunit_timer_cpuTime(suiteTimer, &cpuTimeMeasurement);
     scunit_timer_free(&suiteTimer);
-    scunit_printf("\nTests: ");
+    scunit_printf("Tests: ");
     scunit_printfc(
         (summary->passedTests > 0) ? SCUNIT_COLOR_DARK_GREEN : SCUNIT_COLOR_DARK_DEFAULT,
         SCUNIT_COLOR_DARK_DEFAULT,
@@ -306,8 +309,10 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
     scunit_printfc(
         (summary->passedTests > 0) ? SCUNIT_COLOR_DARK_GREEN : SCUNIT_COLOR_DARK_DEFAULT,
         SCUNIT_COLOR_DARK_DEFAULT,
-        "%.2F %%",
-        (((double) summary->passedTests) / suite->registeredTests) * 100.0
+        "%.2F%%",
+        (suite->registeredTests > 0)
+            ? (((double) summary->passedTests) / suite->registeredTests) * 100.0
+            : 0.0
     );
     scunit_printf("), ");
     scunit_printfc(
@@ -320,8 +325,10 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
     scunit_printfc(
         (summary->skippedTests > 0) ? SCUNIT_COLOR_DARK_YELLOW : SCUNIT_COLOR_DARK_DEFAULT,
         SCUNIT_COLOR_DARK_DEFAULT,
-        "%.2F %%",
-        (((double) summary->skippedTests) / suite->registeredTests) * 100.0
+        "%.2F%%",
+        (suite->registeredTests > 0)
+            ? (((double) summary->skippedTests) / suite->registeredTests) * 100.0
+            : 0.0
     );
     scunit_printf("), ");
     scunit_printfc(
@@ -334,8 +341,10 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
     scunit_printfc(
         (summary->failedTests > 0) ? SCUNIT_COLOR_DARK_RED : SCUNIT_COLOR_DARK_DEFAULT,
         SCUNIT_COLOR_DARK_DEFAULT,
-        "%.2F %%",
-        (((double) summary->failedTests) / suite->registeredTests) * 100.0
+        "%.2F%%",
+        (suite->registeredTests > 0)
+            ? (((double) summary->failedTests) / suite->registeredTests) * 100.0
+            : 0.0
     );
     scunit_printf(
         "), %" PRId64 " Total\nWall: %.3F %s, CPU: %.3F %s\n\n",

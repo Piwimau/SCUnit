@@ -218,8 +218,8 @@ static int scunit_runSuites() {
     scunit_printfc(
         (passedSuites > 0) ? SCUNIT_COLOR_DARK_GREEN : SCUNIT_COLOR_DARK_DEFAULT,
         SCUNIT_COLOR_DARK_DEFAULT,
-        "%.2F %%",
-        (((double) passedSuites) / registeredSuites) * 100.0
+        "%.2F%%",
+        (registeredSuites > 0) ? (((double) passedSuites) / registeredSuites) * 100.0 : 0.0
     );
     scunit_printf("), ");
     scunit_printfc(
@@ -232,8 +232,8 @@ static int scunit_runSuites() {
     scunit_printfc(
         (failedSuites > 0) ? SCUNIT_COLOR_DARK_RED : SCUNIT_COLOR_DARK_DEFAULT,
         SCUNIT_COLOR_DARK_DEFAULT,
-        "%.2F %%",
-        (((double) failedSuites) / registeredSuites) * 100.0
+        "%.2F%%",
+        (registeredSuites > 0) ? (((double) failedSuites) / registeredSuites) * 100.0 : 0.0
     );
     scunit_printf("), %" PRId64 " Total\nTests: ", registeredSuites);
     scunit_printfc(
@@ -243,12 +243,12 @@ static int scunit_runSuites() {
         summary.passedTests
     );
     scunit_printf("Passed (");
-    int totalTests = summary.passedTests + summary.skippedTests + summary.failedTests;
+    int64_t totalTests = summary.passedTests + summary.skippedTests + summary.failedTests;
     scunit_printfc(
         (summary.passedTests > 0) ? SCUNIT_COLOR_DARK_GREEN : SCUNIT_COLOR_DARK_DEFAULT,
         SCUNIT_COLOR_DARK_DEFAULT,
-        "%.2F %%",
-        (((double) summary.passedTests) / totalTests) * 100.0
+        "%.2F%%",
+        (totalTests > 0) ? (((double) summary.passedTests) / totalTests) * 100.0 : 0.0
     );
     scunit_printf("), ");
     scunit_printfc(
@@ -261,8 +261,8 @@ static int scunit_runSuites() {
     scunit_printfc(
         (summary.skippedTests > 0) ? SCUNIT_COLOR_DARK_YELLOW : SCUNIT_COLOR_DARK_DEFAULT,
         SCUNIT_COLOR_DARK_DEFAULT,
-        "%.2F %%",
-        (((double) summary.skippedTests) / totalTests) * 100.0
+        "%.2F%%",
+        (totalTests > 0) ? (((double) summary.skippedTests) / totalTests) * 100.0 : 0.0
     );
     scunit_printf("), ");
     scunit_printfc(
@@ -275,8 +275,8 @@ static int scunit_runSuites() {
     scunit_printfc(
         (summary.failedTests > 0) ? SCUNIT_COLOR_DARK_RED : SCUNIT_COLOR_DARK_DEFAULT,
         SCUNIT_COLOR_DARK_DEFAULT,
-        "%.2F %%",
-        (((double) summary.failedTests) / totalTests) * 100.0
+        "%.2F%%",
+        (totalTests > 0) ? (((double) summary.failedTests) / totalTests) * 100.0 : 0.0
     );
     scunit_printf(
         "), %" PRId64 " Total\nWall: %.3F %s, CPU: %.3F %s\n",
