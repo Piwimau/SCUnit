@@ -10,11 +10,13 @@
  */
 
 #include <inttypes.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <SCUnit/scunit.h>
+
+/** @brief Version information of SCUnit. */
+static constexpr SCUnitVersion VERSION = { .major = 0, .minor = 2, .patch = 0 };
 
 /** @brief Growth factor used for resizing the array of suites. */
 static constexpr int64_t GROWTH_FACTOR = 2;
@@ -32,6 +34,10 @@ static int64_t capacity;
 
 /** @brief Number of registered suites. */
 static int64_t registeredSuites;
+
+SCUnitVersion scunit_version() {
+    return VERSION;
+}
 
 SCUnitError scunit_registerSuite(SCUnitSuite* suite) {
     if (suite == nullptr) {
@@ -58,8 +64,8 @@ SCUnitError scunit_registerSuite(SCUnitSuite* suite) {
  * `nullptr` or passing an unknown option to the test executable), an error message is printed to
  * `stderr` and the program exits using `EXIT_FAILURE`.
  *
- * Note that the program immediately exits with `EXIT_SUCCESS` if the help option `-h` or `--help`
- * is present in `argv`.
+ * Note that the program immediately exits with `EXIT_SUCCESS` if the help (`-h` or `--help`) or
+ * version (`-v` or `--version`) option is present in `argv`.
  *
  * @param[in] argc Number of command line arguments passed to the test executable.
  * @param[in] argv Command line arguments passed to the test executable.
@@ -85,13 +91,17 @@ static void scunit_parseArguments(int argc, char** argv) {
     }
     for (int i = 1; i < argc; i++) {
         if ((strcmp(argv[i], "-h") == 0) || (strcmp(argv[i], "--help") == 0)) {
-            scunit_printf("Usage: scunit [");
+            scunit_printf("Usage: <executable> [");
             scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "OPTION");
             scunit_printf("]...\n\nOptions:\n");
             scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "  -h");
             scunit_printf(", ");
             scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "--help");
             scunit_printf("                           Print this help message and exit.\n");
+            scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "  -v");
+            scunit_printf(", ");
+            scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "--version");
+            scunit_printf("                        Print version information and exit.\n");
             scunit_printfc(
                 SCUNIT_COLOR_DARK_CYAN,
                 SCUNIT_COLOR_DARK_DEFAULT,
@@ -99,6 +109,16 @@ static void scunit_parseArguments(int argc, char** argv) {
             );
             scunit_printf(
                 "={disabled|enabled}  Enable or disable colored output (default = enabled).\n"
+                "                                       Only has an effect on subsequent options.\n"
+            );
+            exit(EXIT_SUCCESS);
+        }
+        else if ((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--version") == 0)) {
+            scunit_printf(
+                "SCUnit %" PRId32 ".%" PRId32 ".%" PRId32 "\n",
+                VERSION.major,
+                VERSION.minor,
+                VERSION.patch
             );
             exit(EXIT_SUCCESS);
         }

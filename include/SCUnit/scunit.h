@@ -13,6 +13,7 @@
 #ifndef SCUNIT_H
 #define SCUNIT_H
 
+#include <stdint.h>
 #include <SCUnit/assert.h>
 #include <SCUnit/context.h>
 #include <SCUnit/error.h>
@@ -20,6 +21,27 @@
 #include <SCUnit/print.h>
 #include <SCUnit/suite.h>
 #include <SCUnit/timer.h>
+
+/** @brief Represents the version information of SCUnit. */
+typedef struct SCUnitVersion {
+
+    /** @brief Major version number of SCUnit. */
+    int32_t major;
+
+    /** @brief Minor version number of SCUnit. */
+    int32_t minor;
+
+    /** @brief Patch version number of SCUnit. */
+    int32_t patch;
+
+} SCUnitVersion;
+
+/**
+ * @brief Retrieves the version information of SCUnit.
+ *
+ * @return An `SCUnitVersion` containing the major, minor and patch version number of SCUnit.
+ */
+SCUnitVersion scunit_version();
 
 /**
  * @brief Registers an `SCUnitSuite` to be run automatically by SCUnit.
@@ -56,8 +78,8 @@ SCUnitError scunit_registerSuite(SCUnitSuite* suite);
  * `nullptr` or passing an unknown option to the test executable), an error message is printed to
  * `stderr` and the program exits using `EXIT_FAILURE`.
  *
- * Note that the program immediately exits with `EXIT_SUCCESS` if the help option `-h` or `--help`
- * is present in `argv`.
+ * Note that the program immediately exits with `EXIT_SUCCESS` if the help (`-h` or `--help`) or
+ * version (`-v` or `--version`) option is present in `argv`.
  *
  * @param[in] argc Number of command line arguments passed to the test executable.
  * @param[in] argv Command line arguments passed to the test executable.
