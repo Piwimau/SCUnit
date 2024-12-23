@@ -189,10 +189,6 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
     scunit_printf("--- Suite ");
     scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "%s", suite->name);
     scunit_printf(" ---\n\n");
-    if (suite->registeredTests == 0) {
-        scunit_printf("No tests to run...\n\n");
-        return SCUNIT_ERROR_NONE;
-    }
     SCUnitTimer* suiteTimer;
     SCUnitError error = scunit_timer_new(&suiteTimer);
     if (error != SCUNIT_ERROR_NONE) {

@@ -136,12 +136,6 @@ static void scunit_parseArguments(int argc, char** argv) {
  * @return `EXIT_SUCCESS` if all tests passed, otherwise `EXIT_FAILURE`.
  */
 static int scunit_runSuites() {
-    if (registeredSuites == 0) {
-        scunit_printf("No suites to run...\n");
-        return EXIT_SUCCESS;
-    }
-    int64_t failedSuites = 0;
-    SCUnitSummary summary = { };
     SCUnitTimer* timer;
     SCUnitError error = scunit_timer_new(&timer);
     if (error != SCUNIT_ERROR_NONE) {
@@ -165,6 +159,8 @@ static int scunit_runSuites() {
         );
         exit(EXIT_FAILURE);
     }
+    int64_t failedSuites = 0;
+    SCUnitSummary summary = { };
     for (int64_t i = 0; i < registeredSuites; i++) {
         SCUnitSummary suiteSummary = { };
         // Run suites in the order they are originally defined in, which is apparently reversed in
