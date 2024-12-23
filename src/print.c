@@ -22,10 +22,10 @@ static constexpr int64_t INITIAL_BUFFER_SIZE = 128;
 static constexpr int64_t GROWTH_FACTOR = 2;
 
 /** @brief Escape code to start printing using a fore- and background color. */
-#define COLOR_START "\033[%" PRId32 ";%" PRId32 "m"
+static const char* const COLOR_START = "\033[%" PRId32 ";%" PRId32 "m";
 
 /** @brief Escape code to reset the fore- and background color. */
-#define COLOR_RESET "\033[0m"
+static const char* const COLOR_RESET = "\033[0m";
 
 /** @brief Numbers of the foreground colors used in escape codes. */
 static constexpr int32_t FOREGROUND_COLORS[SCUNIT_COLOR_BRIGHT_DEFAULT + 1] = {
@@ -217,7 +217,8 @@ SCUnitError scunit_vfprintfc(
     if (vfprintf(stream, format, args) < 0) {
         return SCUNIT_ERROR_WRITING_STREAM_FAILED;
     }
-    if ((currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) && (fprintf(stream, COLOR_RESET) < 0)) {
+    if ((currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED)
+            && (fprintf(stream, COLOR_RESET) < 0)) {
         return SCUNIT_ERROR_WRITING_STREAM_FAILED;
     }
     return SCUNIT_ERROR_NONE;
