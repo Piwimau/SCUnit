@@ -2,17 +2,19 @@
     <img src="resources/SCUnit.png" alt="SCUnit Logo" width="50%"/>
 </p>
 
-SCUnit is a small, easy-to-use unit testing framework for C. With no complex configuration or
-setup required, it allows you to focus on the important things: Writing and executing tests.
+SCUnit is a small, easy-to-use unit testing framework for C. With no complex configuration or setup
+required, it allows you to focus on the important things: Writing and executing tests.
 
 ## Why should you use SCUnit?
 
-SCUnit is written in the popular [XUnit](https://en.wikipedia.org/wiki/XUnit) style. If you have
-ever worked with a framework like [NUnit](https://nunit.org/) or [JUnit](https://junit.org/junit5/)
-before, you will feel right at home. Even if you've never done any unit testing, you won't face a
+SCUnit is written using the popular [XUnit](https://en.wikipedia.org/wiki/XUnit) style. If you've
+ever worked with a framework like [NUnit](https://nunit.org) or [JUnit](https://junit.org/junit5)
+before, you'll feel right at home. Even if you've never done any unit testing, you won't face a
 steep learning curve as SCUnit is specifically designed to be small and easy to use. All you need to
 get started is a compliant C23 compiler, include SCUnit in your sources and link it as a library to
 your test executable.
+
+Before we go into more detail, here's a simple example of what testing with SCUnit looks like:
 
 ```c
 #include <SCUnit/scunit.h>
@@ -34,10 +36,11 @@ int main(int argc, char** argv) {
 
 Some of the key features for which you might consider using SCUnit include:
 
-* Automatic discovery and registration of tests and suites, no manual setup required.
+* Automatic discovery and registration of tests and suites.
 * A minimal, yet useful set of assertions for checking various conditions in tests.
 * Ability to group logically related tests into suites. Particularly large suites can even be
   distributed across multiple source files for readability.
+* Support for suite/test setup and teardown functions.
 * Accurate and optionally colored diagnostic messages on `stdout` and `stderr` that not only inform
   you of the status of a test, but also include execution time measurements and some helpful context
   when an assertion fails.
@@ -75,7 +78,7 @@ all platforms:
   [`clock_gettime()`](https://man7.org/linux/man-pages/man3/clock_gettime.3.html). This is mainly
   due to the lack of other suitable and portable options in the C standard library.
   Generally speaking, it should be available on MacOS and Linux, but not on Windows. In the latter
-  case, I can highly recommend [MSYS2](https://www.msys2.org/) as a solution. Another alternative
+  case, I can highly recommend [MSYS2](https://www.msys2.org) as a solution. Another alternative
   would be to rely on a platform-specific, more feature-rich timer and change the underlying
   implementation.
 
@@ -105,8 +108,8 @@ Debug variants are identified by an additional `d` suffix in the library name (e
 for a static library built in debug mode). They are not optimized and contain various debug symbols
 to provide a better debugging experience.
 
-All build artifacts are generated in the [bin](bin/) directory. Here's a quick overview of the
-different variants that can be built:
+All binaries are generated in the [bin](bin/) directory. Here's a quick overview of the different
+variants that can be built (links only work after the specific variant has been built):
 
 | Build Type / Library Type | Static                                        | Shared                                          |
 |---------------------------|-----------------------------------------------|-------------------------------------------------|
@@ -122,15 +125,20 @@ project. However, these are the general steps you need to follow:
    [headers](include/SCUnit/).
 
 2. Include the main header [`<SCUnit/scunit.h>`](include/SCUnit/scunit.h) in your source files and
-   start writing tests.
+   start writing tests. You'll probably spend most of your time working with the contents of the
+   [`<SCUnit/suite.h>`](include/SCUnit/suite.h) and [`<SCUnit/assert.h>`](include/SCUnit/assert.h)
+   headers, which contain the main functionality needed to define suites, tests, setup and teardown
+   functions, as well as general assertions to be used in tests.
 
 3. Link SCUnit as a static or shared library when you build your test executable.
+
+See the individual headers for detailed documentation on the interface and intended usage.
 
 ## Why was SCUnit created?
 
 Besides the occasional learning experience, SCUnit gave me a chance to try out modern C23 in
 practice. I hadn't done any unit testing in a long time and needed a way to test some of my own side
-projects, including the last and current year of [Advent of Code](https://adventofcode.com/),
+projects, including the last and current year of [Advent of Code](https://adventofcode.com),
 which I plan on doing in C this time.
 
 Of course, there are other great unit testing frameworks available for C, but they are often huge
@@ -139,20 +147,6 @@ registered manually, or if a lot of configuration and setup code is required. Sm
 ranging from tiny (essentially just providing a single `assert` macro) to very powerful, often
 didn't provide the exact set of features I was looking for, including style, consistent error
 handling, and being written and intended for use in pure C.
-
-## Roadmap
-
-Although there is no official roadmap for the future, I plan to continue developing SCUnit as I gain
-practical experience using it in my own side projects. Some things I have already thought about:
-
-* Adding specialized assertion macros for strings, arrays, memory segments or bitwise operations.
-* Improving the diagnostic messages of failed asserts by including the actual and expected values
-  automatically (this is hard to do in C as you need the correct format specifier for every
-  possible type to be used in such an assertion).
-* General improvements to the internal implementation and source code documentation.
-* Adding support for parameterized tests or other popular features of similar frameworks.
-* Adding a lightweight, easy-to-read documentation and examples for users of the library.
-* Improving portability across platforms and compilers.
 
 ## Contributing
 
@@ -169,7 +163,7 @@ some of the issues related to unit testing C code and two example frameworks one
 SCUnit has been inspired by many other existing frameworks, including (but not limited to)
 [Google Test](https://github.com/google/googletest), [Check](https://github.com/libcheck/check),
 [Unity](https://github.com/ThrowTheSwitch/Unity), [Tau](https://github.com/jasmcaus/tau),
-[µnit](https://nemequ.github.io/munit/), [tst](https://github.com/rdentato/tst) and
+[µnit](https://nemequ.github.io/munit), [tst](https://github.com/rdentato/tst) and
 [MinUnit](https://github.com/siu/minunit).
 
 ## License
