@@ -35,7 +35,7 @@ static int64_t capacity;
 /** @brief Number of registered suites. */
 static int64_t registeredSuites;
 
-SCUnitVersion scunit_version() {
+SCUnitVersion scunit_getVersion() {
     return VERSION;
 }
 
@@ -190,7 +190,7 @@ static int scunit_runSuites() {
         error = scunit_suite_run(suites[registeredSuites - 1 - i], &suiteSummary);
         if (error != SCUNIT_ERROR_NONE) {
             const char* name;
-            scunit_suite_name(suites[registeredSuites - 1 - i], &name);
+            scunit_suite_getName(suites[registeredSuites - 1 - i], &name);
             scunit_fprintfc(
                 stderr,
                 SCUNIT_COLOR_DARK_RED,
@@ -221,8 +221,8 @@ static int scunit_runSuites() {
     }
     SCUnitMeasurement wallTimeMeasurement;
     SCUnitMeasurement cpuTimeMeasurement;
-    scunit_timer_wallTime(timer, &wallTimeMeasurement);
-    scunit_timer_cpuTime(timer, &cpuTimeMeasurement);
+    scunit_timer_getWallTime(timer, &wallTimeMeasurement);
+    scunit_timer_getCPUTime(timer, &cpuTimeMeasurement);
     scunit_timer_free(&timer);
     scunit_printf("--- ");
     scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "Summary");

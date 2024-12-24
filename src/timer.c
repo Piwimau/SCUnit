@@ -178,7 +178,7 @@ static inline void scunit_adjustMeasurement(SCUnitMeasurement* elapsedTimeMeasur
     elapsedTimeMeasurement->timeUnitString = TIME_UNIT_STRINGS[elapsedTimeMeasurement->timeUnit];
 }
 
-SCUnitError scunit_timer_wallTime(
+SCUnitError scunit_timer_getWallTime(
     const SCUnitTimer* timer,
     SCUnitMeasurement* wallTimeMeasurement
 ) {
@@ -193,7 +193,7 @@ SCUnitError scunit_timer_wallTime(
     return SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_timer_cpuTime(
+SCUnitError scunit_timer_getCPUTime(
     const SCUnitTimer* timer,
     SCUnitMeasurement* cpuTimeMeasurement
 ) {

@@ -41,7 +41,7 @@ typedef struct SCUnitVersion {
  *
  * @return An `SCUnitVersion` containing the major, minor and patch version number of SCUnit.
  */
-SCUnitVersion scunit_version();
+SCUnitVersion scunit_getVersion();
 
 /**
  * @brief Registers an `SCUnitSuite` to be run automatically by SCUnit.

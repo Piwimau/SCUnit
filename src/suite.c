@@ -45,19 +45,19 @@ struct SCUnitSuite {
     /**
      * @brief Optional suite setup function to run before executing all tests in this `SCUnitSuite`.
      *
-     * @note Each `SCUnitSuite` can only have one `SCUnitSetup` function. If equal to `nullptr`,
-     * nothing is registered to be run.
+     * @note Each `SCUnitSuite` can only have one `SCUnitSuiteSetup` function. If equal to
+     * `nullptr`, nothing is registered to be run.
      */
-    SCUnitSetup setup;
+    SCUnitSuiteSetup suiteSetup;
 
     /**
      * @brief Optional suite teardown function to run after executing all tests in this
      * `SCUnitSuite`.
      *
-     * @note Each `SCUnitSuite` can only have one `SCUnitTeardown` function. If equal to `nullptr`,
-     * nothing is registered to be run.
+     * @note Each `SCUnitSuite` can only have one `SCUnitSuiteTeardown` function. If equal to
+     * `nullptr`, nothing is registered to be run.
      */
-    SCUnitTeardown teardown;
+    SCUnitSuiteTeardown suiteTeardown;
 
     /**
      * @brief Optional test setup function to run before each individual test in this `SCUnitSuite`.
@@ -112,7 +112,7 @@ SCUnitError scunit_suite_new(const char* name, SCUnitSuite** suite) {
     return SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_suite_name(const SCUnitSuite* suite, const char** name) {
+SCUnitError scunit_suite_getName(const SCUnitSuite* suite, const char** name) {
     if ((suite == nullptr) || (name == nullptr)) {
         return SCUNIT_ERROR_ARGUMENT_NULL;
     }
@@ -120,19 +120,22 @@ SCUnitError scunit_suite_name(const SCUnitSuite* suite, const char** name) {
     return SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_suite_registerSetup(SCUnitSuite* suite, SCUnitSetup setup) {
+SCUnitError scunit_suite_registerSuiteSetup(SCUnitSuite* suite, SCUnitSuiteSetup suiteSetup) {
     if (suite == nullptr) {
         return SCUNIT_ERROR_ARGUMENT_NULL;
     }
-    suite->setup = setup;
+    suite->suiteSetup = suiteSetup;
     return SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_suite_registerTeardown(SCUnitSuite* suite, SCUnitTeardown teardown) {
+SCUnitError scunit_suite_registerSuiteTeardown(
+    SCUnitSuite* suite,
+    SCUnitSuiteTeardown suiteTeardown
+) {
     if (suite == nullptr) {
         return SCUNIT_ERROR_ARGUMENT_NULL;
     }
-    suite->teardown = teardown;
+    suite->suiteTeardown = suiteTeardown;
     return SCUNIT_ERROR_NONE;
 }
 
@@ -144,7 +147,7 @@ SCUnitError scunit_suite_registerTestSetup(SCUnitSuite* suite, SCUnitTestSetup t
     return SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_suite_setTestTeardown(SCUnitSuite* suite, SCUnitTestTeardown testTeardown) {
+SCUnitError scunit_suite_registerTestTeardown(SCUnitSuite* suite, SCUnitTestTeardown testTeardown) {
     if (suite == nullptr) {
         return SCUNIT_ERROR_ARGUMENT_NULL;
     }
@@ -208,8 +211,8 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
     if (error != SCUNIT_ERROR_NONE) {
         goto fail;
     }
-    if (suite->setup != nullptr) {
-        suite->setup();
+    if (suite->suiteSetup != nullptr) {
+        suite->suiteSetup();
     }
     for (int64_t i = 0; i < suite->registeredTests; i++) {
         if (suite->testSetup != nullptr) {
@@ -262,8 +265,8 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
         }
         SCUnitMeasurement wallTimeMeasurement;
         SCUnitMeasurement cpuTimeMeasurement;
-        scunit_timer_wallTime(testTimer, &wallTimeMeasurement);
-        scunit_timer_cpuTime(testTimer, &cpuTimeMeasurement);
+        scunit_timer_getWallTime(testTimer, &wallTimeMeasurement);
+        scunit_timer_getCPUTime(testTimer, &cpuTimeMeasurement);
         scunit_fprintf(
             (result == SCUNIT_RESULT_FAIL) ? stderr : stdout,
             " [Wall: %.3F %s, CPU: %.3F %s]\n",
@@ -284,8 +287,8 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
             suite->testTeardown();
         }
     }
-    if (suite->teardown != nullptr) {
-        suite->teardown();
+    if (suite->suiteTeardown != nullptr) {
+        suite->suiteTeardown();
     }
     error = scunit_timer_stop(suiteTimer);
     if (error != SCUNIT_ERROR_NONE) {
@@ -295,8 +298,8 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
     scunit_context_free(&context);
     SCUnitMeasurement wallTimeMeasurement;
     SCUnitMeasurement cpuTimeMeasurement;
-    scunit_timer_wallTime(suiteTimer, &wallTimeMeasurement);
-    scunit_timer_cpuTime(suiteTimer, &cpuTimeMeasurement);
+    scunit_timer_getWallTime(suiteTimer, &wallTimeMeasurement);
+    scunit_timer_getCPUTime(suiteTimer, &cpuTimeMeasurement);
     scunit_timer_free(&suiteTimer);
     scunit_printf("Tests: ");
     scunit_printfc(

@@ -15,7 +15,7 @@
  *
  * Before an `SCUnitTimer` can be queried for the elapsed time, it must be stopped with a call to
  * `scunit_timer_stop()`. After that, both the elapsed wall and CPU time can be queried using
- * `scunit_timer_wallTime()` and `scunit_timer_cpuTime()` respectively. The difference is the
+ * `scunit_timer_getWallTime()` and `scunit_timer_getCPUTime()` respectively. The difference is the
  * following:
  *
  * * Wall time (also known as real or wall-clock time) measures the actual time it took for a
@@ -30,8 +30,8 @@
  *   one second to complete, the wall time would be around one second, while the CPU time might be
  *   as much as two seconds if the threads were run in parallel on two different cores.
  *
- * Both `scunit_timer_wallTime()` and `scunit_timer_cpuTime()` return the elapsed time as a double
- * precision floating-point number. The `SCUnitTimer` automatically determines an appropriate
+ * Both `scunit_timer_getWallTime()` and `scunit_timer_getCPUTime()` return the elapsed time as a
+ * double precision floating-point number. The `SCUnitTimer` automatically determines an appropriate
  * `SCUnitTimeUnit' for this value (based on certain internal thresholds).
  *
  * Finally, a call to `scunit_timer_free()` is required to deallocate the resources.
@@ -182,7 +182,10 @@ SCUnitError scunit_timer_isRunning(const SCUnitTimer* timer, bool* isRunning);
  * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `timer` or `wallTimeMeasurement` is `nullptr`,
  * `SCUNIT_ERROR_TIMER_RUNNING` if `timer` is still running and `SCUNIT_ERROR_NONE` otherwise.
  */
-SCUnitError scunit_timer_wallTime(const SCUnitTimer* timer, SCUnitMeasurement* wallTimeMeasurement);
+SCUnitError scunit_timer_getWallTime(
+    const SCUnitTimer* timer,
+    SCUnitMeasurement* wallTimeMeasurement
+);
 
 /**
  * @brief Returns the elapsed CPU time measured by a given `SCUnitTimer`.
@@ -192,7 +195,10 @@ SCUnitError scunit_timer_wallTime(const SCUnitTimer* timer, SCUnitMeasurement* w
  * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `timer` or `cpuTimeMeasurement` is `nullptr`,
  * `SCUNIT_ERROR_TIMER_RUNNING` if `timer` is still running and `SCUNIT_ERROR_NONE` otherwise.
  */
-SCUnitError scunit_timer_cpuTime(const SCUnitTimer* timer, SCUnitMeasurement* cpuTimeMeasurement);
+SCUnitError scunit_timer_getCPUTime(
+    const SCUnitTimer* timer,
+    SCUnitMeasurement* cpuTimeMeasurement
+);
 
 /**
  * @brief Deallocates any remaining resources of a given `SCUnitTimer`.

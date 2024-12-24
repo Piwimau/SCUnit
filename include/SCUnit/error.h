@@ -23,10 +23,20 @@ typedef enum SCUnitError {
     /** @brief Indicates that an operation was successful (i. e. no error occurred). */
     SCUNIT_ERROR_NONE,
 
-    /** @brief Indicates that one of the required arguments of a function was `nullptr`. */
+    /**
+     * @brief Indicates that one of the required arguments of a function was `nullptr`.
+     *
+     * @note This should not occur under normal circumstances. It is usually a sign of a serious
+     * programming error.
+     */
     SCUNIT_ERROR_ARGUMENT_NULL,
 
-    /** @brief Indicates that one of the arguments of a function was out of range. */
+    /**
+     * @brief Indicates that one of the arguments of a function was out of range.
+     *
+     * @note This should not occur under normal circumstances. It is usually a sign of a serious
+     * programming error.
+     */
     SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE,
 
     /** @brief Indicates that a memory allocation failed due to an out-of-memory condition. */

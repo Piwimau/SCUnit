@@ -89,10 +89,10 @@
  *    The same can of course be achieved by using the normal function API. Suite and test setup
  *    and teardown functions have to defined with an appropriate function signature: They take no
  *    arguments as input and return nothing (i. e. the return type must be `void`) as indicated by
- *    the corresponding typedefs `SCUnitSetup`, `SCUnitTeardown`, `SCUnitTestSetup` and
+ *    the corresponding typedefs `SCUnitSuiteSetup`, `SCUnitSuiteTeardown`, `SCUnitTestSetup` and
  *    `SCUnitTestTeardown`. Registration is done by calling the appropriate function, e. g.
- *    `scunit_suite_registerSetup()` for setting a suite setup. Note that suites only support at
- *    most one function of each type for the sake of simplicity. Additional calls to the
+ *    `scunit_suite_registerSuiteSetup()` for setting a suite setup. Note that suites only support
+ *    at most one function of each type for the sake of simplicity. Additional calls to the
  *    registration functions will replace the previous suite/test setup or teardown.
  *
  * 3. Suites may contain an arbitrary number of tests. Once again, the `SCUNIT_TEST()` macro
@@ -175,19 +175,19 @@
  * @brief Represents a suite setup function to be run before executing all tests of an
  * `SCUnitSuite`.
  *
- * @note Register a suite setup function manually using `scunit_suite_registerSetup()`.
- * Each `SCUnitSuite` can only have one `SCUnitSetup` function.
+ * @note Register a suite setup function manually using `scunit_suite_registerSuiteSetup()`.
+ * Each `SCUnitSuite` can only have one `SCUnitSuiteSetup` function.
  */
-typedef void (*SCUnitSetup)();
+typedef void (*SCUnitSuiteSetup)();
 
 /**
  * @brief Represents a suite teardown function to be run after executing all tests of an
  * `SCUnitSuite`.
  *
- * @note Register a suite teardown function manually using `scunit_suite_registerTeardown()`.
- * Each `SCUnitSuite` can only have one `SCUnitTeardown` function.
+ * @note Register a suite teardown function manually using `scunit_suite_registerSuiteTeardown()`.
+ * Each `SCUnitSuite` can only have one `SCUnitSuiteTeardown` function.
  */
-typedef void (*SCUnitTeardown)();
+typedef void (*SCUnitSuiteTeardown)();
 
 /**
  * @brief Represents a test setup function to be run before each individual test of an
@@ -202,7 +202,7 @@ typedef void (*SCUnitTestSetup)();
  * @brief Represents a test teardown function to be run after each individual test of an
  * `SCUnitSuite`.
  *
- * @note Register a test teardown function manually using `scunit_suite_setTestTeardown()`.
+ * @note Register a test teardown function manually using `scunit_suite_registerTestTeardown()`.
  * Each `SCUnitSuite` can only have one `SCUnitTestTeardown` function.
  */
 typedef void (*SCUnitTestTeardown)();
@@ -363,27 +363,27 @@ typedef struct SCUnitSummary {
 *
 * @param[in] name Name of the `SCUnitSuite` to define and register the suite setup function for.
 */
-#define SCUNIT_SUITE_BEFORE_ALL(name)                                                         \
-    static void scunit_suite##name##Setup();                                                  \
-    [[gnu::constructor(102)]]                                                                 \
-    static void scunit_registerSuite##name##Setup() {                                         \
-        SCUnitError error = scunit_suite_registerSetup(                                       \
-            scunit_suite##name,                                                               \
-            scunit_suite##name##Setup                                                         \
-        );                                                                                    \
-        if (error != SCUNIT_ERROR_NONE) {                                                     \
-            scunit_fprintfc(                                                                  \
-                stderr,                                                                       \
-                SCUNIT_COLOR_DARK_RED,                                                        \
-                SCUNIT_COLOR_DARK_DEFAULT,                                                    \
-                "An unexpected error occurred while setting the suite %s setup (code %d).\n", \
-                #name,                                                                        \
-                error                                                                         \
-            );                                                                                \
-            exit(EXIT_FAILURE);                                                               \
-        }                                                                                     \
-    }                                                                                         \
-    static void scunit_suite##name##Setup()
+#define SCUNIT_SUITE_BEFORE_ALL(name)                                                             \
+    static void scunit_suite##name##SuiteSetup();                                                 \
+    [[gnu::constructor(102)]]                                                                     \
+    static void scunit_registerSuite##name##SuiteSetup() {                                        \
+        SCUnitError error = scunit_suite_registerSuiteSetup(                                      \
+            scunit_suite##name,                                                                   \
+            scunit_suite##name##SuiteSetup                                                        \
+        );                                                                                        \
+        if (error != SCUNIT_ERROR_NONE) {                                                         \
+            scunit_fprintfc(                                                                      \
+                stderr,                                                                           \
+                SCUNIT_COLOR_DARK_RED,                                                            \
+                SCUNIT_COLOR_DARK_DEFAULT,                                                        \
+                "An unexpected error occurred while registering the suite %s setup (code %d).\n", \
+                #name,                                                                            \
+                error                                                                             \
+            );                                                                                    \
+            exit(EXIT_FAILURE);                                                                   \
+        }                                                                                         \
+    }                                                                                             \
+    static void scunit_suite##name##SuiteSetup()
 
 /**
  * @brief Defines and registers a suite teardown function for an `SCUnitSuite` with a given name.
@@ -398,27 +398,28 @@ typedef struct SCUnitSummary {
  *
  * @param[in] name Name of the `SCUnitSuite` to define and register the suite teardown function for.
  */
-#define SCUNIT_SUITE_AFTER_ALL(name)                                                             \
-    static void scunit_suite##name##Teardown();                                                  \
-    [[gnu::constructor(102)]]                                                                    \
-    static void scunit_registerSuite##name##Teardown() {                                         \
-        SCUnitError error = scunit_suite_registerTeardown(                                       \
-            scunit_suite##name,                                                                  \
-            scunit_suite##name##Teardown                                                         \
-        );                                                                                       \
-        if (error != SCUNIT_ERROR_NONE) {                                                        \
-            scunit_fprintfc(                                                                     \
-                stderr,                                                                          \
-                SCUNIT_COLOR_DARK_RED,                                                           \
-                SCUNIT_COLOR_DARK_DEFAULT,                                                       \
-                "An unexpected error occurred while setting the suite %s teardown (code %d).\n", \
-                #name,                                                                           \
-                error                                                                            \
-            );                                                                                   \
-            exit(EXIT_FAILURE);                                                                  \
-        }                                                                                        \
-    }                                                                                            \
-    static void scunit_suite##name##Teardown()
+#define SCUNIT_SUITE_AFTER_ALL(name)                                                    \
+    static void scunit_suite##name##SuiteTeardown();                                    \
+    [[gnu::constructor(102)]]                                                           \
+    static void scunit_registerSuite##name##SuiteTeardown() {                           \
+        SCUnitError error = scunit_suite_registerSuiteTeardown(                         \
+            scunit_suite##name,                                                         \
+            scunit_suite##name##SuiteTeardown                                           \
+        );                                                                              \
+        if (error != SCUNIT_ERROR_NONE) {                                               \
+            scunit_fprintfc(                                                            \
+                stderr,                                                                 \
+                SCUNIT_COLOR_DARK_RED,                                                  \
+                SCUNIT_COLOR_DARK_DEFAULT,                                              \
+                "An unexpected error occurred while registering the suite %s teardown " \
+                    "(code %d).\n",                                                     \
+                #name,                                                                  \
+                error                                                                   \
+            );                                                                          \
+            exit(EXIT_FAILURE);                                                         \
+        }                                                                               \
+    }                                                                                   \
+    static void scunit_suite##name##SuiteTeardown()
 
 /**
  * @brief Defines and registers a test setup function for an `SCUnitSuite` with a given name.
@@ -433,26 +434,27 @@ typedef struct SCUnitSummary {
  *
  * @param[in] name Name of the `SCUnitSuite` to define and register the test setup function for.
  */
-#define SCUNIT_SUITE_BEFORE_EACH(name)                                                             \
-    static void scunit_suite##name##TestSetup();                                                   \
-    [[gnu::constructor(102)]]                                                                      \
-    static void scunit_registerSuite##name##TestSetup() {                                          \
-        SCUnitError error = scunit_suite_registerTestSetup(                                        \
-            scunit_suite##name,                                                                    \
-            scunit_suite##name##TestSetup                                                          \
-        );                                                                                         \
-        if (error != SCUNIT_ERROR_NONE) {                                                          \
-            scunit_fprintfc(                                                                       \
-                stderr,                                                                            \
-                SCUNIT_COLOR_DARK_RED,                                                             \
-                SCUNIT_COLOR_DARK_DEFAULT,                                                         \
-                "An unexpected error occurred while setting the suite %s test setup (code %d).\n", \
-                #name,                                                                             \
-                error                                                                              \
-            );                                                                                     \
-            exit(EXIT_FAILURE);                                                                    \
-        }                                                                                          \
-    }                                                                                              \
+#define SCUNIT_SUITE_BEFORE_EACH(name)                                                    \
+    static void scunit_suite##name##TestSetup();                                          \
+    [[gnu::constructor(102)]]                                                             \
+    static void scunit_registerSuite##name##TestSetup() {                                 \
+        SCUnitError error = scunit_suite_registerTestSetup(                               \
+            scunit_suite##name,                                                           \
+            scunit_suite##name##TestSetup                                                 \
+        );                                                                                \
+        if (error != SCUNIT_ERROR_NONE) {                                                 \
+            scunit_fprintfc(                                                              \
+                stderr,                                                                   \
+                SCUNIT_COLOR_DARK_RED,                                                    \
+                SCUNIT_COLOR_DARK_DEFAULT,                                                \
+                "An unexpected error occurred while registering the suite %s test setup " \
+                    "(code %d).\n",                                                       \
+                #name,                                                                    \
+                error                                                                     \
+            );                                                                            \
+            exit(EXIT_FAILURE);                                                           \
+        }                                                                                 \
+    }                                                                                     \
     static void scunit_suite##name##TestSetup()
 
 /**
@@ -468,27 +470,27 @@ typedef struct SCUnitSummary {
  *
  * @param[in] name Name of the `SCUnitSuite` to define and register the test teardown function for.
  */
-#define SCUNIT_SUITE_AFTER_EACH(name)                                                    \
-    static void scunit_suite##name##TestTeardown();                                      \
-    [[gnu::constructor(102)]]                                                            \
-    static void scunit_registerSuite##name##TestTeardown() {                             \
-        SCUnitError error = scunit_suite_setTestTeardown(                                \
-            scunit_suite##name,                                                          \
-            scunit_suite##name##TestTeardown                                             \
-        );                                                                               \
-        if (error != SCUNIT_ERROR_NONE) {                                                \
-            scunit_fprintfc(                                                             \
-                stderr,                                                                  \
-                SCUNIT_COLOR_DARK_RED,                                                   \
-                SCUNIT_COLOR_DARK_DEFAULT,                                               \
-                "An unexpected error occurred while setting the suite %s test teardown " \
-                    "(code %d).\n",                                                      \
-                #name,                                                                   \
-                error                                                                    \
-            );                                                                           \
-            exit(EXIT_FAILURE);                                                          \
-        }                                                                                \
-    }                                                                                    \
+#define SCUNIT_SUITE_AFTER_EACH(name)                                                        \
+    static void scunit_suite##name##TestTeardown();                                          \
+    [[gnu::constructor(102)]]                                                                \
+    static void scunit_registerSuite##name##TestTeardown() {                                 \
+        SCUnitError error = scunit_suite_registerTestTeardown(                                    \
+            scunit_suite##name,                                                              \
+            scunit_suite##name##TestTeardown                                                 \
+        );                                                                                   \
+        if (error != SCUNIT_ERROR_NONE) {                                                    \
+            scunit_fprintfc(                                                                 \
+                stderr,                                                                      \
+                SCUNIT_COLOR_DARK_RED,                                                       \
+                SCUNIT_COLOR_DARK_DEFAULT,                                                   \
+                "An unexpected error occurred while registering the suite %s test teardown " \
+                    "(code %d).\n",                                                          \
+                #name,                                                                       \
+                error                                                                        \
+            );                                                                               \
+            exit(EXIT_FAILURE);                                                              \
+        }                                                                                    \
+    }                                                                                        \
     static void scunit_suite##name##TestTeardown()
 
 /**
@@ -553,33 +555,36 @@ SCUnitError scunit_suite_new(const char* name, SCUnitSuite** suite);
  * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `suite` or `name` is `nullptr` and `SCUNIT_ERROR_NONE`
  * otherwise.
  */
-SCUnitError scunit_suite_name(const SCUnitSuite* suite, const char** name);
+SCUnitError scunit_suite_getName(const SCUnitSuite* suite, const char** name);
 
 /**
  * @brief Registers a suite setup function function for an `SCUnitSuite`.
  *
- * @attention Each `SCUnitSuite` can only have one `SCUnitSetup` function. Multiple calls to this
- * function will cause the current one to be replaced.
+ * @attention Each `SCUnitSuite` can only have one `SCUnitSuiteSetup` function. Multiple calls to
+ * this function will cause the current one to be replaced.
  *
- * @param[in, out] suite `SCUnitSuite` to register the `SCUnitSetup` for.
- * @param[in]      setup `SCUnitSetup` function to register. If equal to `nullptr`, causes the
+ * @param[in, out] suite `SCUnitSuite` to register the `SCUnitSuiteSetup` for.
+ * @param[in]      setup `SCUnitSuiteSetup` function to register. If equal to `nullptr`, causes the
  *                       current one to be deregistered.
  * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `suite` is `nullptr` and `SCUNIT_ERROR_NONE` otherwise.
  */
-SCUnitError scunit_suite_registerSetup(SCUnitSuite* suite, SCUnitSetup setup);
+SCUnitError scunit_suite_registerSuiteSetup(SCUnitSuite* suite, SCUnitSuiteSetup suiteSetup);
 
 /**
  * @brief Registers a suite teardown function function for an `SCUnitSuite`.
  *
- * @attention Each `SCUnitSuite` can only have one `SCUnitTeardown` function. Multiple calls to this
- * function will cause the current one to be replaced.
+ * @attention Each `SCUnitSuite` can only have one `SCUnitSuiteTeardown` function. Multiple calls to
+ * this function will cause the current one to be replaced.
  *
- * @param[in, out] suite    `SCUnitSuite` to register the `SCUnitTeardown` for.
- * @param[in]      teardown `SCUnitTeardown` function to register. If equal to `nullptr`, causes the
- *                          current one to be deregistered.
+ * @param[in, out] suite    `SCUnitSuite` to register the `SCUnitSuiteTeardown` for.
+ * @param[in]      teardown `SCUnitSuiteTeardown` function to register. If equal to `nullptr`,
+ *                          causes the current one to be deregistered.
  * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `suite` is `nullptr` and `SCUNIT_ERROR_NONE` otherwise.
  */
-SCUnitError scunit_suite_registerTeardown(SCUnitSuite* suite, SCUnitTeardown teardown);
+SCUnitError scunit_suite_registerSuiteTeardown(
+    SCUnitSuite* suite,
+    SCUnitSuiteTeardown suiteTeardown
+);
 
 /**
  * @brief Registers a test setup function function for an `SCUnitSuite`.
@@ -605,7 +610,7 @@ SCUnitError scunit_suite_registerTestSetup(SCUnitSuite* suite, SCUnitTestSetup t
  *                           causes the current one to be deregistered.
  * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `suite` is `nullptr` and `SCUNIT_ERROR_NONE` otherwise.
  */
-SCUnitError scunit_suite_setTestTeardown(SCUnitSuite* suite, SCUnitTestTeardown testTeardown);
+SCUnitError scunit_suite_registerTestTeardown(SCUnitSuite* suite, SCUnitTestTeardown testTeardown);
 
 /**
  * @brief Registers a test function to be executed as part of an `SCUnitSuite`.

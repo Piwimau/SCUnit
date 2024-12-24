@@ -77,7 +77,7 @@
  *                   standard `printf` family of functions, followed by any number of additional
  *                   arguments to be written according to the format string.
  */
-#define SCUNIT_TERMINATE_TEST(result, ...)                                                        \
+#define SCUNIT_TEST_TERMINATE(result, ...)                                                        \
     do {                                                                                          \
         SCUnitError scunit_error;                                                                 \
         __VA_OPT__(                                                                               \
@@ -132,7 +132,7 @@
  *                standard `printf` family of functions, followed by any number of additional
  *                arguments to be written according to the format string.
  */
-#define SCUNIT_PASS(...) SCUNIT_TERMINATE_TEST(SCUNIT_RESULT_PASS __VA_OPT__(, __VA_ARGS__))
+#define SCUNIT_PASS(...) SCUNIT_TEST_TERMINATE(SCUNIT_RESULT_PASS __VA_OPT__(, __VA_ARGS__))
 
 /**
  * @brief Causes the current test to be skipped.
@@ -144,7 +144,7 @@
  *                standard `printf` family of functions, followed by any number of additional
  *                arguments to be written according to the format string.
  */
-#define SCUNIT_SKIP(...) SCUNIT_TERMINATE_TEST(SCUNIT_RESULT_SKIP __VA_OPT__(, __VA_ARGS__))
+#define SCUNIT_SKIP(...) SCUNIT_TEST_TERMINATE(SCUNIT_RESULT_SKIP __VA_OPT__(, __VA_ARGS__))
 
 /**
  * @brief Causes the current test to fail immediately.
@@ -156,7 +156,7 @@
  *                standard `printf` family of functions, followed by any number of additional
  *                arguments to be written according to the format string.
  */
-#define SCUNIT_FAIL(...) SCUNIT_TERMINATE_TEST(SCUNIT_RESULT_FAIL __VA_OPT__(, __VA_ARGS__))
+#define SCUNIT_FAIL(...) SCUNIT_TEST_TERMINATE(SCUNIT_RESULT_FAIL __VA_OPT__(, __VA_ARGS__))
 
 /**
  * @brief Asserts that an arbitrary condition holds. If the assertion fails, writes an error message
