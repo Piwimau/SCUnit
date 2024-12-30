@@ -122,7 +122,7 @@ SCUnitError scunit_printfc(
  * @brief Determines if a given value is a valid `SCUnitColor`.
  *
  * @param[in] color Value to check.
- * @return `True` if the given value is a valid `SCUnitColor`, otherwise `false`.
+ * @return `true` if the given value is a valid `SCUnitColor`, otherwise `false`.
  */
 static inline bool scunit_isValidColor(SCUnitColor color) {
     return (color >= SCUNIT_COLOR_DARK_BLACK) && (color <= SCUNIT_COLOR_BRIGHT_DEFAULT);

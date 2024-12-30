@@ -168,7 +168,7 @@ SCUnitError scunit_timer_stop(SCUnitTimer* timer);
  * @brief Determines if a given `SCUnitTimer` is running.
  *
  * @param[in]  timer     `SCUnitTimer` to examine.
- * @param[out] isRunning `True` if the given `SCUnitTimer` is running, otherwise `false`.
+ * @param[out] isRunning `true` if the given `SCUnitTimer` is running, otherwise `false`.
  * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `timer` or `isRunning` is `nullptr` and
  * `SCUNIT_ERROR_NONE` otherwise.
  */
