@@ -337,8 +337,6 @@ SCUnitError scunit_context_free(SCUnitContext** context) {
     }
     if (*context != nullptr) {
         SCUNIT_FREE((*context)->message);
-        (*context)->message = nullptr;
-        (*context)->size = 0;
         SCUNIT_FREE(*context);
         *context = nullptr;
     }

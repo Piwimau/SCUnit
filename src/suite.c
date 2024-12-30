@@ -371,15 +371,10 @@ SCUnitError scunit_suite_free(SCUnitSuite** suite) {
     }
     if (*suite != nullptr) {
         SCUNIT_FREE((*suite)->name);
-        (*suite)->name = nullptr;
         for (int64_t i = 0; i < (*suite)->registeredTests; i++) {
             SCUNIT_FREE((*suite)->tests[i].name);
-            (*suite)->tests[i].name = nullptr;
         }
         SCUNIT_FREE((*suite)->tests);
-        (*suite)->tests = nullptr;
-        (*suite)->capacity = 0;
-        (*suite)->registeredTests = 0;
         SCUNIT_FREE(*suite);
         *suite = nullptr;
     }
