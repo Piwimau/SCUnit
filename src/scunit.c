@@ -16,7 +16,7 @@
 #include <SCUnit/scunit.h>
 
 /** @brief Version information of SCUnit. */
-static constexpr SCUnitVersion VERSION = { .major = 0, .minor = 2, .patch = 0 };
+static constexpr SCUnitVersion VERSION = { .major = 0, .minor = 2, .patch = 1 };
 
 /** @brief Growth factor used for resizing the array of suites. */
 static constexpr int64_t GROWTH_FACTOR = 2;
