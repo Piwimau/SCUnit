@@ -49,7 +49,7 @@ SCUnitError scunit_context_new(SCUnitContext** context) {
     if (context == nullptr) {
         return SCUNIT_ERROR_ARGUMENT_NULL;
     }
-    *context = SCUNIT_CALLOC(1, sizeof(SCUnitContext));
+    *context = SCUNIT_MALLOC(sizeof(SCUnitContext));
     if (*context == nullptr) {
         return SCUNIT_ERROR_OUT_OF_MEMORY;
     }

@@ -99,10 +99,11 @@ SCUnitError scunit_suite_new(const char* name, SCUnitSuite** suite) {
     if ((name == nullptr) || (suite == nullptr)) {
         return SCUNIT_ERROR_ARGUMENT_NULL;
     }
-    *suite = SCUNIT_CALLOC(1, sizeof(SCUnitSuite));
+    *suite = SCUNIT_MALLOC(sizeof(SCUnitSuite));
     if (*suite == nullptr) {
         return SCUNIT_ERROR_OUT_OF_MEMORY;
     }
+    **suite = (SCUnitSuite) { };
     (*suite)->name = strdup(name);
     if ((*suite)->name == nullptr) {
         SCUNIT_FREE(*suite);

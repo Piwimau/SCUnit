@@ -65,8 +65,12 @@ SCUnitError scunit_timer_new(SCUnitTimer** timer) {
     if (timer == nullptr) {
         return SCUNIT_ERROR_ARGUMENT_NULL;
     }
-    *timer = SCUNIT_CALLOC(1, sizeof(SCUnitTimer));
-    return (*timer == nullptr) ? SCUNIT_ERROR_OUT_OF_MEMORY : SCUNIT_ERROR_NONE;
+    *timer = SCUNIT_MALLOC(sizeof(SCUnitTimer));
+    if (*timer == nullptr) {
+        return SCUNIT_ERROR_OUT_OF_MEMORY;
+    }
+    **timer = (SCUnitTimer) { };
+    return SCUNIT_ERROR_NONE;
 }
 
 /**
