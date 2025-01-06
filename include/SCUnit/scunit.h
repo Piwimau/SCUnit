@@ -1,15 +1,3 @@
-/**
- * @file scunit.h
- *
- * @brief Main header of SCUnit to be included in tests.
- *
- * @note If you want to take advantage of SCUnit's automatic test registration and execution
- * mechanism, this header also declares two important functions required for that. See below for
- * more details.
- *
- * @author Philipp Raschka
- */
-
 #ifndef SCUNIT_H
 #define SCUNIT_H
 

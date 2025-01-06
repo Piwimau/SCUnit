@@ -1,14 +1,3 @@
-/**
- * @file context.c
- *
- * @brief Implementation of a context available in tests that stores important information.
- *
- * @note See the corresponding header file `<SCUnit/context.h>` for more information on the
- * interface, intended usage and some general implementation notes.
- *
- * @author Philipp Raschka
- */
-
 #include <ctype.h>
 #include <math.h>
 #include <stdarg.h>

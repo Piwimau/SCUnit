@@ -1,14 +1,3 @@
-/**
- * @file suite.c
- *
- * @brief Implementation of a suite to group logically related tests together.
- *
- * @note See the corresponding header file `<SCUnit/suite.h>` for more information on the interface,
- * intended usage and some general implementation notes.
- *
- * @author Philipp Raschka
- */
-
 #include <inttypes.h>
 #include <math.h>
 #include <stdint.h>

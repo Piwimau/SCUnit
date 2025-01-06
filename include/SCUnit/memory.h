@@ -1,24 +1,3 @@
-/**
- * @file memory.h
- *
- * @brief A few utility macros for dynamic memory management.
- *
- * @details This header defines four basic macros for dynamic memory management: `SCUNIT_MALLOC()`,
- * `SCUNIT_CALLOC()`, `SCUNIT_REALLOC()`, and `SCUNIT_FREE()`. By default, these are implemented
- * by calling the corresponding C standard library functions.
- *
- * These macros allow for easy substitution of the memory allocation functions, such that custom
- * implementations for debugging, logging or tracking memory usage can be used without modifying the
- * code that uses these macros.
- *
- * @attention Ensure that any replacement functions are API-compatible and semantically equivalent
- * to the C standard library functions.
- *
- * @warning These macros are only thread-safe if the underlying allocation functions are.
- *
- * @author Philipp Raschka
- */
-
 #ifndef SCUNIT_MEMORY_H
 #define SCUNIT_MEMORY_H
 
@@ -27,7 +6,7 @@
 /**
  * @brief Allocates a block of uninitialized memory.
  *
- * @attention If `size` is zero, the behavior is implementation defined.
+ * @attention If `size` is zero, the behavior is implementation-defined.
  *
  * @param[in] size Size of the block to allocate (in bytes).
  * @return A pointer to an uninitialized block of memory or `nullptr` if the allocation failed due
@@ -38,7 +17,7 @@
 /**
  * @brief Allocates a block of zero-initialized memory.
  *
- * @attention If `size` is zero, the behavior is implementation defined.
+ * @attention If `size` is zero, the behavior is implementation-defined.
  *
  * @param[in] count Number of elements in the block.
  * @param[in] size  Size of each element (in bytes).

@@ -1,14 +1,3 @@
-/**
- * @file timer.c
- *
- * @brief Implementation of a simple timer for measuring the execution time of a block of code.
- *
- * @note See the corresponding header file `<SCUnit/timer.h>` for more information on the interface,
- * intended usage and some general implementation notes.
- *
- * @author Philipp Raschka
- */
-
 #include <stdint.h>
 #include <time.h>
 #include <SCUnit/memory.h>

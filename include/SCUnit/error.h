@@ -1,16 +1,3 @@
-/**
- * @file error.h
- *
- * @brief This header provides the `SCUnitError` enumeration used as a standardized error handling
- * mechanism throughout SCUnit.
- *
- * @details Functions in the SCUnit API typically return an `SCUnitError` value to indicate various
- * success or failure conditions. You are generally expected to check the return value of such
- * functions unless you are absolutely certain that the documented errors cannot possibly occur.
- *
- * @author Philipp Raschka
- */
-
 #ifndef SCUNIT_ERROR_H
 #define SCUNIT_ERROR_H
 

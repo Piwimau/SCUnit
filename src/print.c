@@ -1,15 +1,3 @@
-/**
- * @file print.c
- *
- * @brief Implementation of a utility module providing various functions for printing formatted
- * and colored messages to streams and buffers.
- *
- * @note See the corresponding header file `<SCUnit/print.h>` for more information on the interface,
- * intended usage and some general implementation notes.
- *
- * @author Philipp Raschka
- */
-
 #include <inttypes.h>
 #include <string.h>
 #include <SCUnit/memory.h>

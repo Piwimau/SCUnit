@@ -1,36 +1,3 @@
-/**
- * @file context.h
- *
- * @brief A context available in tests that stores important information, such as the test's
- * `SCUnitResult` and optionally a message to be printed after the test has finished.
- *
- * @note Under normal circumstances, you should not even care about the existence of this context,
- * as SCUnit takes care of everything when using the `SCUnitSuite` from `<SCUnit/suite.h>`
- * and the assertion macros from `<SCUnit/assert.h>`.
- *
- * However, if you want to do something more sophisticated or implement a custom behavior,
- * you may use the `SCUnitContext` to your advantage. Every test for SCUnit has the following
- * function signature (as can be seen in `<SCUnit/suite.h>`):
- *
- * void exampleTest([[maybe_unused]] SCUnitContext* scunit_context);
- *
- * As such, the `SCUnitContext` is available in each test through the special parameter
- * `scunit_context` (named like this to avoid conflicts with your local variables). Take a look at
- * the interface below to see what can be done with an `SCUnitContext`.
- *
- * @attention The allocation and deallocation of an `SCUnitContext` is handled automatically by the
- * `SCUnitSuite` containing the relevant test. You should therefore not use the corresponding
- * functions `scunit_context_new()` and `scunit_context_free()`, as these are for internal use only.
- *
- * @warning An `SCUnitContext` is not thread-safe. This should not be a problem under normal
- * circumstances, as the context is local to the relevant test (unless you hand out a reference).
- * Concurrent access to a single `SCUnitContext` instance by multiple threads may result in
- * undefined behavior. It is your responsibility to ensure that any access is properly synchronized
- * when used in a multi-threaded context.
- *
- * @author Philipp Raschka
- */
-
 #ifndef SCUNIT_CONTEXT_H
 #define SCUNIT_CONTEXT_H
 

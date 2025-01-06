@@ -1,14 +1,3 @@
-/**
- * @file scunit.c
- *
- * @brief Implementation of SCUnit.
- *
- * @note See the corresponding header file `<SCUnit/scunit.h>` for more information on the
- * interface, intended usage and some general implementation notes.
- *
- * @author Philipp Raschka
- */
-
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>

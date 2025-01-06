@@ -1,35 +1,3 @@
-/**
- * @file print.h
- *
- * @brief A utility module providing various functions for printing formatted and colored messages
- * to streams and buffers.
- *
- * @details Most of the functions are simply wrappers around the standard C counterparts from
- * `<stdio.h>` and are deliberately named the same for familiarity. However, they provide better
- * parameter validation and clearer error semantics.
- *
- * Functions with the suffix `c` (as in `colored`) allow for printing messages with two additional
- * arguments of type `SCUnitColor` for the foreground and background color. Note that colors are
- * only incorporated into the message if the colored output is currently set to
- * `SCUNIT_COLORED_OUTPUT_ENABLED`. Otherwise, the functions simply ignore the colors and use the
- * default color of your terminal instead.
- *
- * Colored output is enabled by default, but can be checked at any time with the function
- * `scunit_getColoredOutput()`. If your terminal does not support colored output or you want to
- * disable it (for example to print the output to a file), simply call `scunit_setColoredOutput()`
- * with the argument `SCUNIT_COLORED_OUTPUT_DISABLED`. Another way to achieve this is to set the
- * option `--colored-output=disabled` when running the test executable. Note that this option is
- * only respected if you explicitly call `scunit_main()` from `<scunit.h>`, which parses any command
- * line arguments passed to the test executable.
- *
- * @warning Examining and setting the colored output via `scunit_getColoredOutput()` and
- * `scunit_setColoredOutput()` is not thread-safe. Concurrent access by multiple threads may result
- * in undefined behavior. It is your responsibility to ensure that any access is properly
- * synchronized when used in a multi-threaded context.
- *
- * @author Philipp Raschka
- */
-
 #ifndef SCUNIT_PRINT_H
 #define SCUNIT_PRINT_H
 
