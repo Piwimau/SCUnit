@@ -69,13 +69,14 @@ SCUnitColoredOutput scunit_getColoredOutput() {
     return currentColoredOutput;
 }
 
-SCUnitError scunit_setColoredOutput(SCUnitColoredOutput coloredOutput) {
+void scunit_setColoredOutput(SCUnitColoredOutput coloredOutput, SCUnitError* error) {
     if ((coloredOutput < SCUNIT_COLORED_OUTPUT_DISABLED)
             || (coloredOutput > SCUNIT_COLORED_OUTPUT_ENABLED)) {
-        return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
+        *error = SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
+        return;
     }
     currentColoredOutput = coloredOutput;
-    return SCUNIT_ERROR_NONE;
+    *error = SCUNIT_ERROR_NONE;
 }
 
 SCUnitError scunit_printf(const char* format, ...) {
@@ -87,9 +88,6 @@ SCUnitError scunit_printf(const char* format, ...) {
 }
 
 SCUnitError scunit_vprintf(const char* format, va_list args) {
-    if (format == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
     return (vprintf(format, args) < 0) ? SCUNIT_ERROR_WRITING_STREAM_FAILED : SCUNIT_ERROR_NONE;
 }
 
@@ -112,7 +110,7 @@ SCUnitError scunit_printfc(
  * @param[in] color Value to check.
  * @return `true` if the given value is a valid `SCUnitColor`, otherwise `false`.
  */
-static inline bool scunit_isValidColor(SCUnitColor color) {
+static inline bool isValidColor(SCUnitColor color) {
     return (color >= SCUNIT_COLOR_DARK_BLACK) && (color <= SCUNIT_COLOR_BRIGHT_DEFAULT);
 }
 
@@ -122,11 +120,8 @@ SCUnitError scunit_vprintfc(
     const char* format,
     va_list args
 ) {
-    if (!scunit_isValidColor(foreground) || !scunit_isValidColor(background)) {
+    if (!isValidColor(foreground) || !isValidColor(background)) {
         return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
-    }
-    if (format == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
     }
     if (currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) {
         int result = printf(
@@ -156,9 +151,6 @@ SCUnitError scunit_fprintf(FILE* stream, const char* format, ...) {
 }
 
 SCUnitError scunit_vfprintf(FILE* stream, const char* format, va_list args) {
-    if ((stream == nullptr) || (format == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
     return (vfprintf(stream, format, args) < 0)
         ? SCUNIT_ERROR_WRITING_STREAM_FAILED
         : SCUNIT_ERROR_NONE;
@@ -185,10 +177,7 @@ SCUnitError scunit_vfprintfc(
     const char* format,
     va_list args
 ) {
-    if ((stream == nullptr) || (format == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
-    if (!scunit_isValidColor(foreground) || !scunit_isValidColor(background)) {
+    if (!isValidColor(foreground) || !isValidColor(background)) {
         return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
     if (currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) {
@@ -230,48 +219,50 @@ SCUnitError scunit_rsnprintf(char** buffer, int64_t* size, const char* format, .
  *                              size.
  * @param[in, out] size         Current size of the buffer (including the terminating `\0` byte).
  *                              The size is updated if `*buffer` is resized.
- * @param[in]      requiredSize Minimum required size the buffer must have.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `buffer` or `size` is `nullptr`,
- * `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` or `requiredSize` is negative, if `*buffer` is
- * `nullptr` and `*size` is not equal to zero or if `*buffer` is not `nullptr` and `*size` is equal
- * to zero, `SCUNIT_ERROR_OUT_OF_MEMORY` if an resizing the buffer failed due to an out-of-memory
- * condition and `SCUNIT_ERROR_NONE` otherwise.
+ * @param[in]      requiredSize Minimum size of the buffer to ensure.
+ * @param[out]     error        `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` or `requiredSize`
+ *                              is negative, if `*buffer` is `nullptr` and `*size` is not equal to
+ *                              zero or if `*buffer` is not `nullptr` and `*size` is equal to zero,
+ *                              `SCUNIT_ERROR_OUT_OF_MEMORY` if an resizing the buffer failed due to
+ *                              an out-of-memory condition and `SCUNIT_ERROR_NONE` otherwise.
  */
-static inline SCUnitError scunit_ensureSize(char** buffer, int64_t* size, int64_t requiredSize) {
-    if ((buffer == nullptr) || (size == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
+static inline void ensureSize(
+    char** buffer,
+    int64_t* size,
+    int64_t requiredSize,
+    SCUnitError* error
+) {
     if ((*size < 0) || (requiredSize < 0) || ((*buffer == nullptr) != (*size == 0))) {
-        return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
+        *error = SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
+        return;
     }
     if (*size < requiredSize) {
-        int64_t newSize = *size;
+        int64_t newSize = (*size == 0) ? 1 : *size;
         while (newSize < requiredSize) {
             newSize *= GROWTH_FACTOR;
         }
         char* newBuffer = SCUNIT_REALLOC(*buffer, newSize);
         if (newBuffer == nullptr) {
-            return SCUNIT_ERROR_OUT_OF_MEMORY;
+            *error = SCUNIT_ERROR_OUT_OF_MEMORY;
+            return;
         }
         *buffer = newBuffer;
         *size = newSize;
     }
-    return SCUNIT_ERROR_NONE;
+    *error = SCUNIT_ERROR_NONE;
 }
 
 SCUnitError scunit_vrsnprintf(char** buffer, int64_t* size, const char* format, va_list args) {
-    if ((buffer == nullptr) || (size == nullptr) || (format == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
     if ((*size < 0) || ((*buffer == nullptr) != (*size == 0))) {
         return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
+    SCUnitError error;
     if (*buffer == nullptr) {
-        SCUnitError error = scunit_ensureSize(buffer, size, INITIAL_BUFFER_SIZE);
+        ensureSize(buffer, size, INITIAL_BUFFER_SIZE, &error);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
-        // Ensure the buffer is null-terminated since `scunit_ensureSize()` uses `SCUNIT_REALLOC()`
+        // Ensure the buffer is null-terminated since `ensureSize()` uses `SCUNIT_REALLOC()`
         // internally, which does not zero-initialize new memory areas of an expanded buffer.
         (*buffer)[0] = '\0';
     }
@@ -282,7 +273,7 @@ SCUnitError scunit_vrsnprintf(char** buffer, int64_t* size, const char* format, 
     if (length < 0) {
         return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
     }
-    SCUnitError error = scunit_ensureSize(buffer, size, length + 1);
+    ensureSize(buffer, size, length + 1, &error);
     if (error != SCUNIT_ERROR_NONE) {
         return error;
     }
@@ -315,19 +306,17 @@ SCUnitError scunit_vrsnprintfc(
     const char* format,
     va_list args
 ) {
-    if ((buffer == nullptr) || (size == nullptr) || (format == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
-    if (!scunit_isValidColor(foreground) || !scunit_isValidColor(background) || (*size < 0)
+    if (!isValidColor(foreground) || !isValidColor(background) || (*size < 0)
             || ((*buffer == nullptr) != (*size == 0))) {
         return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
+    SCUnitError error;
     if (*buffer == nullptr) {
-        SCUnitError error = scunit_ensureSize(buffer, size, INITIAL_BUFFER_SIZE);
+        ensureSize(buffer, size, INITIAL_BUFFER_SIZE, &error);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
-        // Ensure the buffer is null-terminated since `scunit_ensureSize()` uses `SCUNIT_REALLOC()`
+        // Ensure the buffer is null-terminated since `ensureSize()` uses `SCUNIT_REALLOC()`
         // internally, which does not zero-initialize new memory areas of an expanded buffer.
         (*buffer)[0] = '\0';
     }
@@ -343,7 +332,7 @@ SCUnitError scunit_vrsnprintfc(
         if (length < 0) {
             return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
         }
-        SCUnitError error = scunit_ensureSize(buffer, size, offset + length + 1);
+        ensureSize(buffer, size, offset + length + 1, &error);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
@@ -366,7 +355,7 @@ SCUnitError scunit_vrsnprintfc(
     if (length < 0) {
         return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
     }
-    SCUnitError error = scunit_ensureSize(buffer, size, offset + length + 1);
+    ensureSize(buffer, size, offset + length + 1, &error);
     if (error != SCUNIT_ERROR_NONE) {
         return error;
     }
@@ -375,7 +364,7 @@ SCUnitError scunit_vrsnprintfc(
     }
     if (currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) {
         offset += length;
-        SCUnitError error = scunit_ensureSize(buffer, size, offset + strlen(COLOR_RESET) + 1);
+        ensureSize(buffer, size, offset + strlen(COLOR_RESET) + 1, &error);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
@@ -395,18 +384,16 @@ SCUnitError scunit_rasnprintf(char** buffer, int64_t* size, const char* format, 
 }
 
 SCUnitError scunit_vrasnprintf(char** buffer, int64_t* size, const char* format, va_list args) {
-    if ((buffer == nullptr) || (size == nullptr) || (format == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
     if ((*size < 0) || ((*buffer == nullptr) != (*size == 0))) {
         return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
+    SCUnitError error;
     if (*buffer == nullptr) {
-        SCUnitError error = scunit_ensureSize(buffer, size, INITIAL_BUFFER_SIZE);
+        ensureSize(buffer, size, INITIAL_BUFFER_SIZE, &error);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
-        // Ensure the buffer is null-terminated since `scunit_ensureSize()` uses `SCUNIT_REALLOC()`
+        // Ensure the buffer is null-terminated since `ensureSize()` uses `SCUNIT_REALLOC()`
         // internally, which does not zero-initialize new memory areas of an expanded buffer.
         (*buffer)[0] = '\0';
     }
@@ -418,7 +405,7 @@ SCUnitError scunit_vrasnprintf(char** buffer, int64_t* size, const char* format,
         return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
     }
     int64_t offset = strnlen(*buffer, *size);
-    SCUnitError error = scunit_ensureSize(buffer, size, offset + length + 1);
+    ensureSize(buffer, size, offset + length + 1, &error);
     if (error != SCUNIT_ERROR_NONE) {
         return error;
     }
@@ -451,19 +438,17 @@ SCUnitError scunit_vrasnprintfc(
     const char* format,
     va_list args
 ) {
-    if ((buffer == nullptr) || (size == nullptr) || (format == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
-    if (!scunit_isValidColor(foreground) || !scunit_isValidColor(background) || (*size < 0)
+    if (!isValidColor(foreground) || !isValidColor(background) || (*size < 0)
             || ((*buffer == nullptr) != (*size == 0))) {
         return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
+    SCUnitError error;
     if (*buffer == nullptr) {
-        SCUnitError error = scunit_ensureSize(buffer, size, INITIAL_BUFFER_SIZE);
+        ensureSize(buffer, size, INITIAL_BUFFER_SIZE, &error);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
-        // Ensure the buffer is null-terminated since `scunit_ensureSize()` uses `SCUNIT_REALLOC()`
+        // Ensure the buffer is null-terminated since `ensureSize()` uses `SCUNIT_REALLOC()`
         // internally, which does not zero-initialize new memory areas of an expanded buffer.
         (*buffer)[0] = '\0';
     }
@@ -479,7 +464,7 @@ SCUnitError scunit_vrasnprintfc(
         if (length < 0) {
             return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
         }
-        SCUnitError error = scunit_ensureSize(buffer, size, offset + length + 1);
+        ensureSize(buffer, size, offset + length + 1, &error);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
@@ -502,7 +487,7 @@ SCUnitError scunit_vrasnprintfc(
     if (length < 0) {
         return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
     }
-    SCUnitError error = scunit_ensureSize(buffer, size, offset + length + 1);
+    ensureSize(buffer, size, offset + length + 1, &error);
     if (error != SCUNIT_ERROR_NONE) {
         return error;
     }
@@ -511,7 +496,7 @@ SCUnitError scunit_vrasnprintfc(
     }
     if (currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) {
         offset += length;
-        SCUnitError error = scunit_ensureSize(buffer, size, offset + strlen(COLOR_RESET) + 1);
+        ensureSize(buffer, size, offset + strlen(COLOR_RESET) + 1, &error);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }

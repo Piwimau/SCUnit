@@ -48,7 +48,7 @@
                 exit(EXIT_FAILURE);                                                               \
             }                                                                                     \
         )                                                                                         \
-        scunit_error = scunit_context_setResult(scunit_context, result);                          \
+        scunit_context_setResult(scunit_context, result, &scunit_error);                          \
         if (scunit_error != SCUNIT_ERROR_NONE) {                                                  \
             scunit_fprintfc(                                                                      \
                 stderr,                                                                           \
@@ -134,7 +134,7 @@
                 );                                                                                \
                 exit(EXIT_FAILURE);                                                               \
             }                                                                                     \
-            scunit_error = scunit_context_appendFileContext(scunit_context, __FILE__, __LINE__);  \
+            scunit_context_appendFileContext(scunit_context, __FILE__, __LINE__, &scunit_error);  \
             if (scunit_error != SCUNIT_ERROR_NONE) {                                              \
                 scunit_fprintfc(                                                                  \
                     stderr,                                                                       \
@@ -184,18 +184,7 @@
                     exit(EXIT_FAILURE);                                                           \
                 }                                                                                 \
             )                                                                                     \
-            scunit_error = scunit_context_setResult(scunit_context, SCUNIT_RESULT_FAIL);          \
-            if (scunit_error != SCUNIT_ERROR_NONE) {                                              \
-                scunit_fprintfc(                                                                  \
-                    stderr,                                                                       \
-                    SCUNIT_COLOR_DARK_RED,                                                        \
-                    SCUNIT_COLOR_DARK_DEFAULT,                                                    \
-                    "An unexpected error occurred while setting the result for the test context " \
-                        "(code %d).\n",                                                           \
-                    scunit_error                                                                  \
-                );                                                                                \
-                exit(EXIT_FAILURE);                                                               \
-            }                                                                                     \
+            scunit_context_setResult(scunit_context, SCUNIT_RESULT_FAIL, &scunit_error);          \
             return;                                                                               \
         }                                                                                         \
     }                                                                                             \

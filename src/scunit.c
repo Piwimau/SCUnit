@@ -14,7 +14,8 @@ static constexpr int64_t GROWTH_FACTOR = 2;
  * @brief Suites registered to be run automatically by SCUnit.
  *
  * @note This is a dynamically resized array with storage for `capacity` elements and
- * `registeredSuites` registered suites.
+ * `registeredSuites` registered suites, except if `capacity` is zero, in which case it is initially
+ * a `nullptr`.
  */
 static SCUnitSuite** suites;
 
@@ -28,30 +29,26 @@ SCUnitVersion scunit_getVersion() {
     return VERSION;
 }
 
-SCUnitError scunit_registerSuite(SCUnitSuite* suite) {
-    if (suite == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
+void scunit_registerSuite(SCUnitSuite* suite, SCUnitError* error) {
     if (registeredSuites >= capacity) {
-        // Add one for the edge case of `capacity` being zero (which is the case initially).
-        int64_t newCapacity = (capacity * GROWTH_FACTOR) + 1;
+        int64_t newCapacity = (capacity == 0) ? 1 : capacity * GROWTH_FACTOR;
         SCUnitSuite** newSuites = SCUNIT_REALLOC(suites, newCapacity * sizeof(SCUnitSuite*));
         if (newSuites == nullptr) {
-            return SCUNIT_ERROR_OUT_OF_MEMORY;
+            *error = SCUNIT_ERROR_OUT_OF_MEMORY;
+            return;
         }
         suites = newSuites;
         capacity = newCapacity;
     }
     suites[registeredSuites++] = suite;
-    return SCUNIT_ERROR_NONE;
+    *error = SCUNIT_ERROR_NONE;
 }
 
 /**
  * @brief Parses the command line arguments passed to the test executable.
  *
- * @attention If any unexpected error occurs (this includes `argc` being negative, `argv` being
- * `nullptr` or passing an unknown option to the test executable), an error message is printed to
- * `stderr` and the program exits using `EXIT_FAILURE`.
+ * @attention If any unexpected error occurs, an error message is printed to `stderr` and the
+ * program exits using `EXIT_FAILURE`.
  *
  * Note that the program immediately exits with `EXIT_SUCCESS` if the help (`-h` or `--help`) or
  * version (`-v` or `--version`) option is present in `argv`.
@@ -60,24 +57,6 @@ SCUnitError scunit_registerSuite(SCUnitSuite* suite) {
  * @param[in] argv Command line arguments passed to the test executable.
  */
 static void scunit_parseArguments(int argc, char** argv) {
-    if (argc < 0) {
-        scunit_fprintfc(
-            stderr,
-            SCUNIT_COLOR_DARK_RED,
-            SCUNIT_COLOR_DARK_DEFAULT,
-            "A negative number of arguments was supplied.\n"
-        );
-        exit(EXIT_FAILURE);
-    }
-    if (argv == nullptr) {
-        scunit_fprintfc(
-            stderr,
-            SCUNIT_COLOR_DARK_RED,
-            SCUNIT_COLOR_DARK_DEFAULT,
-            "A null pointer was supplied for the arguments.\n"
-        );
-        exit(EXIT_FAILURE);
-    }
     for (int i = 1; i < argc; i++) {
         if ((strcmp(argv[i], "-h") == 0) || (strcmp(argv[i], "--help") == 0)) {
             scunit_printf("Usage: <executable> [");
@@ -112,10 +91,12 @@ static void scunit_parseArguments(int argc, char** argv) {
             exit(EXIT_SUCCESS);
         }
         else if (strcmp(argv[i], "--colored-output=disabled") == 0) {
-            scunit_setColoredOutput(SCUNIT_COLORED_OUTPUT_DISABLED);
+            SCUnitError error;
+            scunit_setColoredOutput(SCUNIT_COLORED_OUTPUT_DISABLED, &error);
         }
         else if (strcmp(argv[i], "--colored-output=enabled") == 0) {
-            scunit_setColoredOutput(SCUNIT_COLORED_OUTPUT_ENABLED);
+            SCUnitError error;
+            scunit_setColoredOutput(SCUNIT_COLORED_OUTPUT_ENABLED, &error);
         }
         else {
             scunit_fprintf(stderr, "Unknown option ");
@@ -145,8 +126,8 @@ static void scunit_parseArguments(int argc, char** argv) {
  * @return `EXIT_SUCCESS` if all tests passed, otherwise `EXIT_FAILURE`.
  */
 static int scunit_runSuites() {
-    SCUnitTimer* timer;
-    SCUnitError error = scunit_timer_new(&timer);
+    SCUnitError error;
+    SCUnitTimer* timer = scunit_timer_new(&error);
     if (error != SCUNIT_ERROR_NONE) {
         scunit_fprintfc(
             stderr,
@@ -157,7 +138,7 @@ static int scunit_runSuites() {
         );
         exit(EXIT_FAILURE);
     }
-    error = scunit_timer_start(timer);
+    scunit_timer_start(timer, &error);
     if (error != SCUNIT_ERROR_NONE) {
         scunit_fprintfc(
             stderr,
@@ -171,21 +152,19 @@ static int scunit_runSuites() {
     int64_t failedSuites = 0;
     SCUnitSummary summary = { };
     for (int64_t i = 0; i < registeredSuites; i++) {
-        SCUnitSummary suiteSummary = { };
+        SCUnitSummary suiteSummary;
         // Run suites in the order they are originally defined in, which is apparently reversed in
         // relation to how they are registered using `[[gnu::constructor]]`. Note that SCUnit does
         // not guarantee the order in which tests or suites are run anywhere, so we are free to
         // implement this however we want.
-        error = scunit_suite_run(suites[registeredSuites - 1 - i], &suiteSummary);
+        scunit_suite_run(suites[registeredSuites - 1 - i], &suiteSummary, &error);
         if (error != SCUNIT_ERROR_NONE) {
-            const char* name;
-            scunit_suite_getName(suites[registeredSuites - 1 - i], &name);
             scunit_fprintfc(
                 stderr,
                 SCUNIT_COLOR_DARK_RED,
                 SCUNIT_COLOR_DARK_DEFAULT,
                 "An unexpected error occurred while running the suite %s (code %d).\n",
-                name,
+                scunit_suite_getName(suites[registeredSuites - 1 - i]),
                 error
             );
             exit(EXIT_FAILURE);
@@ -197,7 +176,7 @@ static int scunit_runSuites() {
         summary.skippedTests += suiteSummary.skippedTests;
         summary.failedTests += suiteSummary.failedTests;
     }
-    error = scunit_timer_stop(timer);
+    scunit_timer_stop(timer, &error);
     if (error != SCUNIT_ERROR_NONE) {
         scunit_fprintfc(
             stderr,
@@ -208,11 +187,9 @@ static int scunit_runSuites() {
         );
         exit(EXIT_FAILURE);
     }
-    SCUnitMeasurement wallTimeMeasurement;
-    SCUnitMeasurement cpuTimeMeasurement;
-    scunit_timer_getWallTime(timer, &wallTimeMeasurement);
-    scunit_timer_getCPUTime(timer, &cpuTimeMeasurement);
-    scunit_timer_free(&timer);
+    SCUnitMeasurement wallTimeMeasurement = scunit_timer_getWallTime(timer, &error);
+    SCUnitMeasurement cpuTimeMeasurement = scunit_timer_getCPUTime(timer, &error);
+    scunit_timer_free(timer);
     scunit_printf("--- ");
     scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "Summary");
     scunit_printf(" ---\n\nSuites: ");
@@ -301,7 +278,7 @@ static int scunit_runSuites() {
 /** @brief Deallocates all registered suites. */
 static inline void scunit_freeSuites() {
     for (int64_t i = 0; i < registeredSuites; i++) {
-        scunit_suite_free(&suites[i]);
+        scunit_suite_free(suites[i]);
     }
     SCUNIT_FREE(suites);
     suites = nullptr;

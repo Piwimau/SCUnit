@@ -58,11 +58,14 @@ typedef struct SCUnitMeasurement {
 /**
  * @brief Initializes a new `SCUnitTimer`.
  *
- * @param[out] timer A new initialized `SCUnitTimer`.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `timer` is `nullptr`, `SCUNIT_ERROR_OUT_OF_MEMORY` if an
- * out-of-memory condition occurred and `SCUNIT_ERROR_NONE` otherwise.
+ * @warning The `SCUnitTimer` returned by this function is dynamically allocated and must be passed
+ * to `scunit_timer_free()` to avoid a memory leak.
+ *
+ * @param[out] error `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
+ *                   otherwise `SCUNIT_ERROR_NONE`.
+ * @return A pointer to a new initialized `SCUnitTimer` on success, otherwise a `nullptr`.
  */
-SCUnitError scunit_timer_new(SCUnitTimer** timer);
+SCUnitTimer* scunit_timer_new(SCUnitError* error);
 
 /**
  * @brief Starts measuring time using a given `SCUnitTimer`.
@@ -72,79 +75,72 @@ SCUnitError scunit_timer_new(SCUnitTimer** timer);
  * instead.
  *
  * @param[in, out] timer `SCUnitTimer` to start measuring time with.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `timer` is `nullptr`, `SCUNIT_ERROR_TIMER_RUNNING` if
- * `timer` is already running, `SCUNIT_ERROR_TIMER_FAILED` if starting `timer` failed and
- * `SCUNIT_ERROR_NONE` otherwise.
+ * @param[out]     error `SCUNIT_ERROR_TIMER_RUNNING` if `timer` is already running,
+ *                       `SCUNIT_ERROR_TIMER_FAILED` if starting `timer` failed and
+ *                       `SCUNIT_ERROR_NONE` otherwise.
  */
-SCUnitError scunit_timer_start(SCUnitTimer* timer);
+void scunit_timer_start(SCUnitTimer* timer, SCUnitError* error);
 
 /**
  * @brief Restarts measuring time using a given `SCUnitTimer`.
  *
- * @attention An `SCUnitTimer` must already be running in order to to restart it.
+ * @attention An `SCUnitTimer` must already be running in order to be able to restart it.
  *
  * @param[in, out] timer `SCUnitTimer` to restart measuring time with.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `timer` is `nullptr`, `SCUNIT_ERROR_TIMER_NOT_RUNNING` if
- * `timer` is not running already, `SCUNIT_ERROR_TIMER_FAILED` if restarting `timer` failed and
- * `SCUNIT_ERROR_NONE` otherwise.
+ * @param[out]     error `SCUNIT_ERROR_TIMER_NOT_RUNNING` if `timer` is not already running,
+ *                       `SCUNIT_ERROR_TIMER_FAILED` if restarting `timer` failed and
+ *                       `SCUNIT_ERROR_NONE` otherwise.
  */
-SCUnitError scunit_timer_restart(SCUnitTimer* timer);
+void scunit_timer_restart(SCUnitTimer* timer, SCUnitError* error);
 
 /**
  * @brief Stops measuring time using a given `SCUnitTimer`.
  *
  * @param[in, out] timer `SCUnitTimer` to stop measuring time with.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `timer` is `nullptr`, `SCUNIT_ERROR_TIMER_NOT_RUNNING` if
- * `timer` is not running, `SCUNIT_ERROR_TIMER_FAILED` if stopping `timer` failed and
- * `SCUNIT_ERROR_NONE` otherwise.
+ * @param[out]     error `SCUNIT_ERROR_TIMER_NOT_RUNNING` if `timer` is not running,
+ *                       `SCUNIT_ERROR_TIMER_FAILED` if stopping `timer` failed and
+ *                       `SCUNIT_ERROR_NONE` otherwise.
  */
-SCUnitError scunit_timer_stop(SCUnitTimer* timer);
+void scunit_timer_stop(SCUnitTimer* timer, SCUnitError* error);
 
 /**
  * @brief Determines if a given `SCUnitTimer` is running.
  *
- * @param[in]  timer     `SCUnitTimer` to examine.
- * @param[out] isRunning `true` if the given `SCUnitTimer` is running, otherwise `false`.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `timer` or `isRunning` is `nullptr` and
- * `SCUNIT_ERROR_NONE` otherwise.
+ * @param[in] timer `SCUnitTimer` to examine.
+ * @return `true` if the given `SCUnitTimer` is running, otherwise `false`.
  */
-SCUnitError scunit_timer_isRunning(const SCUnitTimer* timer, bool* isRunning);
+bool scunit_timer_isRunning(const SCUnitTimer* timer);
 
 /**
  * @brief Returns the elapsed wall time measured by a given `SCUnitTimer`.
  *
- * @param[in]  timer               `SCUnitTimer` to examine.
- * @param[out] wallTimeMeasurement `SCUnitMeasurement` for the elapsed wall time.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `timer` or `wallTimeMeasurement` is `nullptr`,
- * `SCUNIT_ERROR_TIMER_RUNNING` if `timer` is still running and `SCUNIT_ERROR_NONE` otherwise.
+ * @param[in]  timer `SCUnitTimer` to examine.
+ * @param[out] error `SCUNIT_ERROR_TIMER_RUNNING` if `timer` is still running,
+ *                   otherwise `SCUNIT_ERROR_NONE`.
+ * @return An `SCUnitMeasurement` for the elapsed wall time.
  */
-SCUnitError scunit_timer_getWallTime(
-    const SCUnitTimer* timer,
-    SCUnitMeasurement* wallTimeMeasurement
-);
+SCUnitMeasurement scunit_timer_getWallTime(const SCUnitTimer* timer, SCUnitError* error);
 
 /**
  * @brief Returns the elapsed CPU time measured by a given `SCUnitTimer`.
  *
- * @param[in]  timer              `SCUnitTimer` to examine.
- * @param[out] cpuTimeMeasurement `SCUnitMeasurement` for the elapsed CPU time.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `timer` or `cpuTimeMeasurement` is `nullptr`,
- * `SCUNIT_ERROR_TIMER_RUNNING` if `timer` is still running and `SCUNIT_ERROR_NONE` otherwise.
+ * @param[in]  timer `SCUnitTimer` to examine.
+ * @param[out] error `SCUNIT_ERROR_TIMER_RUNNING` if `timer` is still running,
+ *                   otherwise `SCUNIT_ERROR_NONE`.
+ * @return An `SCUnitMeasurement` for the elapsed CPU time.
  */
-SCUnitError scunit_timer_getCPUTime(
-    const SCUnitTimer* timer,
-    SCUnitMeasurement* cpuTimeMeasurement
-);
+SCUnitMeasurement scunit_timer_getCPUTime(const SCUnitTimer* timer, SCUnitError* error);
 
 /**
- * @brief Deallocates any remaining resources of a given `SCUnitTimer`.
+ * @brief Deallocates a given `SCUnitTimer`.
  *
- * @note It is allowed to deallocate a non-existing `SCUnitTimer`, i. e. `*timer` may be `nullptr`,
- * but `timer` itself is not allowed to be `nullptr`.
+ * @note For convenience, `timer` is allowed to be `nullptr`.
  *
- * @param[in, out] timer `SCUnitTimer` to deallocate the resources of.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `timer` is `nullptr` and `SCUNIT_ERROR_NONE` otherwise.
+ * @warning Any use of the `SCUnitTimer` after it has been deallocated results in undefined
+ * behavior.
+ *
+ * @param[in, out] timer `SCUnitTimer` to deallocate.
  */
-SCUnitError scunit_timer_free(SCUnitTimer** timer);
+void scunit_timer_free(SCUnitTimer* timer);
 
 #endif

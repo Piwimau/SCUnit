@@ -11,14 +11,6 @@ typedef enum SCUnitError {
     SCUNIT_ERROR_NONE,
 
     /**
-     * @brief Indicates that one of the required arguments of a function was `nullptr`.
-     *
-     * @note This should not occur under normal circumstances. It is usually a sign of a serious
-     * programming error.
-     */
-    SCUNIT_ERROR_ARGUMENT_NULL,
-
-    /**
      * @brief Indicates that one of the arguments of a function was out of range.
      *
      * @note This should not occur under normal circumstances. It is usually a sign of a serious
@@ -61,20 +53,12 @@ typedef enum SCUnitError {
     SCUNIT_ERROR_TIMER_RUNNING,
 
     /**
-     * @brief Indicates that an `SCUnitTimer` is not running (yet or anymore).
+     * @brief Indicates that an `SCUnitTimer` is not running yet or anymore.
      *
      * @note See the documentation in `<SCUnit/timer.h>` to find out why this error could have
      * occurred. It is usually a sign of a serious programming error.
      */
     SCUNIT_ERROR_TIMER_NOT_RUNNING,
-
-    /**
-     * @brief Indicates that an unknown `SCUnitResult` was encountered in a test.
-     *
-     * @note This should not occur under normal circumstances. It is usually a sign of a serious
-     * programming error.
-     */
-    SCUNIT_ERROR_UNKNOWN_RESULT
 
 } SCUnitError;
 

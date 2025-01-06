@@ -7,7 +7,7 @@
 #include <SCUnit/suite.h>
 #include <SCUnit/timer.h>
 
-/** @brief Represents a simple test which is part of an `SCUnitSuite`. */
+/** @brief Represents a test which is part of an `SCUnitSuite`. */
 typedef struct SCUnitTest {
 
     /**
@@ -84,122 +84,91 @@ struct SCUnitSuite {
 /** @brief Growth factor used for resizing the array of tests. */
 static constexpr int64_t GROWTH_FACTOR = 2;
 
-SCUnitError scunit_suite_new(const char* name, SCUnitSuite** suite) {
-    if ((name == nullptr) || (suite == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
-    *suite = SCUNIT_MALLOC(sizeof(SCUnitSuite));
-    if (*suite == nullptr) {
-        return SCUNIT_ERROR_OUT_OF_MEMORY;
-    }
-    **suite = (SCUnitSuite) { };
-    (*suite)->name = strdup(name);
-    if ((*suite)->name == nullptr) {
-        SCUNIT_FREE(*suite);
-        *suite = nullptr;
-        return SCUNIT_ERROR_OUT_OF_MEMORY;
-    }
-    return SCUNIT_ERROR_NONE;
-}
-
-SCUnitError scunit_suite_getName(const SCUnitSuite* suite, const char** name) {
-    if ((suite == nullptr) || (name == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
-    *name = suite->name;
-    return SCUNIT_ERROR_NONE;
-}
-
-SCUnitError scunit_suite_registerSuiteSetup(SCUnitSuite* suite, SCUnitSuiteSetup suiteSetup) {
+SCUnitSuite* scunit_suite_new(const char* name, SCUnitError* error) {
+    SCUnitSuite* suite = SCUNIT_MALLOC(sizeof(SCUnitSuite));
     if (suite == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
+        *error = SCUNIT_ERROR_OUT_OF_MEMORY;
+        return nullptr;
     }
+    *suite = (SCUnitSuite) { };
+    suite->name = strdup(name);
+    if (suite->name == nullptr) {
+        SCUNIT_FREE(suite);
+        *error = SCUNIT_ERROR_OUT_OF_MEMORY;
+        return nullptr;
+    }
+    *error = SCUNIT_ERROR_NONE;
+    return suite;
+}
+
+const char* scunit_suite_getName(const SCUnitSuite* suite) {
+    return suite->name;
+}
+
+void scunit_suite_setSuiteSetup(SCUnitSuite* suite, SCUnitSuiteSetup suiteSetup) {
     suite->suiteSetup = suiteSetup;
-    return SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_suite_registerSuiteTeardown(
-    SCUnitSuite* suite,
-    SCUnitSuiteTeardown suiteTeardown
-) {
-    if (suite == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
+void scunit_suite_setSuiteTeardown(SCUnitSuite* suite, SCUnitSuiteTeardown suiteTeardown) {
     suite->suiteTeardown = suiteTeardown;
-    return SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_suite_registerTestSetup(SCUnitSuite* suite, SCUnitTestSetup testSetup) {
-    if (suite == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
+void scunit_suite_setTestSetup(SCUnitSuite* suite, SCUnitTestSetup testSetup) {
     suite->testSetup = testSetup;
-    return SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_suite_registerTestTeardown(SCUnitSuite* suite, SCUnitTestTeardown testTeardown) {
-    if (suite == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
+void scunit_suite_setTestTeardown(SCUnitSuite* suite, SCUnitTestTeardown testTeardown) {
     suite->testTeardown = testTeardown;
-    return SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_suite_registerTest(
+void scunit_suite_registerTest(
     SCUnitSuite* suite,
     const char* name,
-    SCUnitTestFunction testFunction
+    SCUnitTestFunction testFunction,
+    SCUnitError* error
 ) {
-    if ((suite == nullptr) || (name == nullptr) || (testFunction == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
     if (suite->registeredTests >= suite->capacity) {
-        // Add one for the edge case of `suite->capacity` being zero (which is the case initially).
-        int64_t newCapacity = (suite->capacity * GROWTH_FACTOR) + 1;
+        int64_t newCapacity = (suite->capacity == 0) ? 1 : suite->capacity * GROWTH_FACTOR;
         SCUnitTest* newTests = SCUNIT_REALLOC(suite->tests, newCapacity * sizeof(SCUnitTest));
         if (newTests == nullptr) {
-            return SCUNIT_ERROR_OUT_OF_MEMORY;
+            *error = SCUNIT_ERROR_OUT_OF_MEMORY;
+            return;
         }
         suite->tests = newTests;
         suite->capacity = newCapacity;
     }
     char* nameCopy = strdup(name);
     if (nameCopy == nullptr) {
-        return SCUNIT_ERROR_OUT_OF_MEMORY;
+        *error = SCUNIT_ERROR_OUT_OF_MEMORY;
+        return;
     }
     suite->tests[suite->registeredTests++] = (SCUnitTest) {
         .name = nameCopy,
         .testFunction = testFunction
     };
-    return SCUNIT_ERROR_NONE;
+    *error = SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
-    if ((suite == nullptr) || (summary == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
+void scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitError* error) {
     *summary = (SCUnitSummary) { };
     scunit_printf("--- Suite ");
     scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "%s", suite->name);
     scunit_printf(" ---\n\n");
-    SCUnitTimer* suiteTimer;
-    SCUnitError error = scunit_timer_new(&suiteTimer);
-    if (error != SCUNIT_ERROR_NONE) {
-        goto fail;
+    SCUnitTimer* suiteTimer = scunit_timer_new(error);
+    if (*error != SCUNIT_ERROR_NONE) {
+        goto suiteTimerAllocationFailed;
     }
-    SCUnitTimer* testTimer;
-    error = scunit_timer_new(&testTimer);
-    if (error != SCUNIT_ERROR_NONE) {
-        goto fail;
+    SCUnitTimer* testTimer = scunit_timer_new(error);
+    if (*error != SCUNIT_ERROR_NONE) {
+        goto testTimerAllocationFailed;
     }
-    SCUnitContext* context;
-    error = scunit_context_new(&context);
-    if (error != SCUNIT_ERROR_NONE) {
-        goto fail;
+    SCUnitContext* context = scunit_context_new(error);
+    if (*error != SCUNIT_ERROR_NONE) {
+        goto contextAllocationFailed;
     }
-    error = scunit_timer_start(suiteTimer);
-    if (error != SCUNIT_ERROR_NONE) {
-        goto fail;
+    scunit_timer_start(suiteTimer, error);
+    if (*error != SCUNIT_ERROR_NONE) {
+        goto failed;
     }
     if (suite->suiteSetup != nullptr) {
         suite->suiteSetup();
@@ -216,19 +185,18 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
         scunit_printf("(%" PRId64 "/%" PRId64 ") Running test ", i + 1, suite->registeredTests);
         scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "%s", test->name);
         scunit_printf("... ");
-        // Reuse the context for every test to avoid unnecessary memory allocations.
+        // Reuse the context for every test to avoid some unnecessary memory allocations.
         scunit_context_reset(context);
-        error = scunit_timer_start(testTimer);
-        if (error != SCUNIT_ERROR_NONE) {
-            goto fail;
+        scunit_timer_start(testTimer, error);
+        if (*error != SCUNIT_ERROR_NONE) {
+            goto failed;
         }
         test->testFunction(context);
-        error = scunit_timer_stop(testTimer);
-        if (error != SCUNIT_ERROR_NONE) {
-            goto fail;
+        scunit_timer_stop(testTimer, error);
+        if (*error != SCUNIT_ERROR_NONE) {
+            goto failed;
         }
-        SCUnitResult result;
-        scunit_context_getResult(context, &result);
+        SCUnitResult result = scunit_context_getResult(context);
         switch (result) {
             case SCUNIT_RESULT_PASS:
                 scunit_printfc(SCUNIT_COLOR_DARK_BLACK, SCUNIT_COLOR_DARK_GREEN, " PASS ");
@@ -248,15 +216,16 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
                 summary->failedTests++;
                 break;
             default:
-                // This should not happen under normal circumstances and is a sign of a serious
-                // programming error.
-                error = SCUNIT_ERROR_UNKNOWN_RESULT;
-                goto fail;
+                scunit_fprintfc(
+                    stderr,
+                    SCUNIT_COLOR_DARK_RED,
+                    SCUNIT_COLOR_DARK_DEFAULT,
+                    "Unreachable.\n"
+                );
+                exit(EXIT_FAILURE);
         }
-        SCUnitMeasurement wallTimeMeasurement;
-        SCUnitMeasurement cpuTimeMeasurement;
-        scunit_timer_getWallTime(testTimer, &wallTimeMeasurement);
-        scunit_timer_getCPUTime(testTimer, &cpuTimeMeasurement);
+        SCUnitMeasurement wallTimeMeasurement = scunit_timer_getWallTime(testTimer, error);
+        SCUnitMeasurement cpuTimeMeasurement = scunit_timer_getCPUTime(testTimer, error);
         scunit_fprintf(
             (result == SCUNIT_RESULT_FAIL) ? stderr : stdout,
             " [Wall: %.3F %s, CPU: %.3F %s]\n",
@@ -265,8 +234,7 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
             cpuTimeMeasurement.time,
             cpuTimeMeasurement.timeUnitString
         );
-        const char* message;
-        scunit_context_getMessage(context, &message);
+        const char* message = scunit_context_getMessage(context);
         if (*message != '\0') {
             scunit_fprintf((result == SCUNIT_RESULT_FAIL) ? stderr : stdout, "%s", message);
         }
@@ -280,17 +248,15 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
     if (suite->suiteTeardown != nullptr) {
         suite->suiteTeardown();
     }
-    error = scunit_timer_stop(suiteTimer);
-    if (error != SCUNIT_ERROR_NONE) {
-        goto fail;
+    scunit_timer_stop(suiteTimer, error);
+    if (*error != SCUNIT_ERROR_NONE) {
+        goto failed;
     }
-    scunit_timer_free(&testTimer);
-    scunit_context_free(&context);
-    SCUnitMeasurement wallTimeMeasurement;
-    SCUnitMeasurement cpuTimeMeasurement;
-    scunit_timer_getWallTime(suiteTimer, &wallTimeMeasurement);
-    scunit_timer_getCPUTime(suiteTimer, &cpuTimeMeasurement);
-    scunit_timer_free(&suiteTimer);
+    scunit_timer_free(testTimer);
+    scunit_context_free(context);
+    SCUnitMeasurement wallTimeMeasurement = scunit_timer_getWallTime(suiteTimer, error);
+    SCUnitMeasurement cpuTimeMeasurement = scunit_timer_getCPUTime(suiteTimer, error);
+    scunit_timer_free(suiteTimer);
     scunit_printf("Tests: ");
     scunit_printfc(
         (summary->passedTests > 0) ? SCUNIT_COLOR_DARK_GREEN : SCUNIT_COLOR_DARK_DEFAULT,
@@ -347,26 +313,24 @@ SCUnitError scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary) {
         cpuTimeMeasurement.time,
         cpuTimeMeasurement.timeUnitString
     );
-    return SCUNIT_ERROR_NONE;
-fail:
-    scunit_timer_free(&suiteTimer);
-    scunit_timer_free(&testTimer);
-    scunit_context_free(&context);
-    return error;
+    *error = SCUNIT_ERROR_NONE;
+    return;
+failed:
+contextAllocationFailed:
+    scunit_context_free(context);
+testTimerAllocationFailed:
+    scunit_timer_free(testTimer);
+suiteTimerAllocationFailed:
+    scunit_timer_free(suiteTimer);
 }
 
-SCUnitError scunit_suite_free(SCUnitSuite** suite) {
-    if (suite == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
-    if (*suite != nullptr) {
-        SCUNIT_FREE((*suite)->name);
-        for (int64_t i = 0; i < (*suite)->registeredTests; i++) {
-            SCUNIT_FREE((*suite)->tests[i].name);
+void scunit_suite_free(SCUnitSuite* suite) {
+    if (suite != nullptr) {
+        SCUNIT_FREE(suite->name);
+        for (int64_t i = 0; i < suite->registeredTests; i++) {
+            SCUNIT_FREE(suite->tests[i].name);
         }
-        SCUNIT_FREE((*suite)->tests);
-        SCUNIT_FREE(*suite);
-        *suite = nullptr;
+        SCUNIT_FREE(suite->tests);
+        SCUNIT_FREE(suite);
     }
-    return SCUNIT_ERROR_NONE;
 }

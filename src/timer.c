@@ -50,16 +50,15 @@ static const char* const TIME_UNIT_STRINGS[SCUNIT_TIME_UNIT_HOURS + 1] = {
     [SCUNIT_TIME_UNIT_HOURS] = "h"
 };
 
-SCUnitError scunit_timer_new(SCUnitTimer** timer) {
+SCUnitTimer* scunit_timer_new(SCUnitError* error) {
+    SCUnitTimer* timer = SCUNIT_MALLOC(sizeof(SCUnitTimer));
     if (timer == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
+        *error = SCUNIT_ERROR_OUT_OF_MEMORY;
+        return nullptr;
     }
-    *timer = SCUNIT_MALLOC(sizeof(SCUnitTimer));
-    if (*timer == nullptr) {
-        return SCUNIT_ERROR_OUT_OF_MEMORY;
-    }
-    **timer = (SCUnitTimer) { };
-    return SCUNIT_ERROR_NONE;
+    *timer = (SCUnitTimer) { };
+    *error = SCUNIT_ERROR_NONE;
+    return timer;
 }
 
 /**
@@ -70,72 +69,65 @@ SCUnitError scunit_timer_new(SCUnitTimer** timer) {
  * @param[in] timespec `SCUnitTimespec` to convert to seconds.
  * @return The equivalent number of seconds represented by the given `SCUnitTimespec`.
  */
-static inline double scunit_timespecToSeconds(SCUnitTimespec timespec) {
+static inline double timespecToSeconds(SCUnitTimespec timespec) {
     return ((double) timespec.tv_sec) + (((double) timespec.tv_nsec) / NANOSECONDS_PER_SECOND);
 }
 
-SCUnitError scunit_timer_start(SCUnitTimer* timer) {
-    if (timer == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
+void scunit_timer_start(SCUnitTimer* timer, SCUnitError* error) {
     if (timer->isRunning) {
-        return SCUNIT_ERROR_TIMER_RUNNING;
+        *error = SCUNIT_ERROR_TIMER_RUNNING;
+        return;
     }
     SCUnitTimespec wallTimeStart;
     SCUnitTimespec cpuTimeStart;
     if ((clock_gettime(CLOCK_MONOTONIC, &wallTimeStart) < 0)
             || (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &cpuTimeStart) < 0)) {
-        return SCUNIT_ERROR_TIMER_FAILED;
+        *error = SCUNIT_ERROR_TIMER_FAILED;
+        return;
     }
-    timer->wallTimeStartSeconds = scunit_timespecToSeconds(wallTimeStart);
-    timer->cpuTimeStartSeconds = scunit_timespecToSeconds(cpuTimeStart);
+    timer->wallTimeStartSeconds = timespecToSeconds(wallTimeStart);
+    timer->cpuTimeStartSeconds = timespecToSeconds(cpuTimeStart);
     timer->isRunning = true;
-    return SCUNIT_ERROR_NONE;
+    *error = SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_timer_restart(SCUnitTimer* timer) {
-    if (timer == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
+void scunit_timer_restart(SCUnitTimer* timer, SCUnitError* error) {
     if (!timer->isRunning) {
-        return SCUNIT_ERROR_TIMER_NOT_RUNNING;
+        *error = SCUNIT_ERROR_TIMER_NOT_RUNNING;
+        return;
     }
     SCUnitTimespec wallTimeStart;
     SCUnitTimespec cpuTimeStart;
     if ((clock_gettime(CLOCK_MONOTONIC, &wallTimeStart) < 0)
             || (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &cpuTimeStart) < 0)) {
-        return SCUNIT_ERROR_TIMER_FAILED;
+        *error = SCUNIT_ERROR_TIMER_FAILED;
+        return;
     }
-    timer->wallTimeStartSeconds = scunit_timespecToSeconds(wallTimeStart);
-    timer->cpuTimeStartSeconds = scunit_timespecToSeconds(cpuTimeStart);
-    return SCUNIT_ERROR_NONE;
+    timer->wallTimeStartSeconds = timespecToSeconds(wallTimeStart);
+    timer->cpuTimeStartSeconds = timespecToSeconds(cpuTimeStart);
+    *error = SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_timer_stop(SCUnitTimer* timer) {
-    if (timer == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
+void scunit_timer_stop(SCUnitTimer* timer, SCUnitError* error) {
     if (!timer->isRunning) {
-        return SCUNIT_ERROR_TIMER_NOT_RUNNING;
+        *error = SCUNIT_ERROR_TIMER_NOT_RUNNING;
+        return;
     }
     SCUnitTimespec wallTimeEnd;
     SCUnitTimespec cpuTimeEnd;
     if ((clock_gettime(CLOCK_MONOTONIC, &wallTimeEnd) < 0)
             || (clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &cpuTimeEnd) < 0)) {
-        return SCUNIT_ERROR_TIMER_FAILED;
+        *error = SCUNIT_ERROR_TIMER_FAILED;
+        return;
     }
-    timer->wallTimeEndSeconds = scunit_timespecToSeconds(wallTimeEnd);
-    timer->cpuTimeEndSeconds = scunit_timespecToSeconds(cpuTimeEnd);
+    timer->wallTimeEndSeconds = timespecToSeconds(wallTimeEnd);
+    timer->cpuTimeEndSeconds = timespecToSeconds(cpuTimeEnd);
     timer->isRunning = false;
-    return SCUNIT_ERROR_NONE;
+    *error = SCUNIT_ERROR_NONE;
 }
 
-SCUnitError scunit_timer_isRunning(const SCUnitTimer* timer, bool* isRunning) {
-    if ((timer == nullptr) || (isRunning == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
-    *isRunning = timer->isRunning;
-    return SCUNIT_ERROR_NONE;
+bool scunit_timer_isRunning(const SCUnitTimer* timer) {
+    return timer->isRunning;
 }
 
 /**
@@ -144,7 +136,7 @@ SCUnitError scunit_timer_isRunning(const SCUnitTimer* timer, bool* isRunning) {
  *
  * @param[in, out] elapsedTimeMeasurement `SCUnitMeasurement` to adjust.
  */
-static inline void scunit_adjustMeasurement(SCUnitMeasurement* elapsedTimeMeasurement) {
+static inline void adjustMeasurement(SCUnitMeasurement* elapsedTimeMeasurement) {
     if (elapsedTimeMeasurement->time < (1.0 / MICROSECONDS_PER_SECOND)) {
         elapsedTimeMeasurement->time *= NANOSECONDS_PER_SECOND;
         elapsedTimeMeasurement->timeUnit = SCUNIT_TIME_UNIT_NANOSECONDS;
@@ -171,41 +163,40 @@ static inline void scunit_adjustMeasurement(SCUnitMeasurement* elapsedTimeMeasur
     elapsedTimeMeasurement->timeUnitString = TIME_UNIT_STRINGS[elapsedTimeMeasurement->timeUnit];
 }
 
-SCUnitError scunit_timer_getWallTime(
-    const SCUnitTimer* timer,
-    SCUnitMeasurement* wallTimeMeasurement
-) {
-    if ((timer == nullptr) || (wallTimeMeasurement == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
+SCUnitMeasurement scunit_timer_getWallTime(const SCUnitTimer* timer, SCUnitError* error) {
     if (timer->isRunning) {
-        return SCUNIT_ERROR_TIMER_RUNNING;
+        *error = SCUNIT_ERROR_TIMER_RUNNING;
+        return (SCUnitMeasurement) {
+            .time = 0.0,
+            .timeUnit = SCUNIT_TIME_UNIT_NANOSECONDS,
+            .timeUnitString = TIME_UNIT_STRINGS[SCUNIT_TIME_UNIT_NANOSECONDS]
+        };
     }
-    wallTimeMeasurement->time = timer->wallTimeEndSeconds - timer->wallTimeStartSeconds;
-    scunit_adjustMeasurement(wallTimeMeasurement);
-    return SCUNIT_ERROR_NONE;
+    SCUnitMeasurement wallTimeMeasurement = {
+        .time = timer->wallTimeEndSeconds - timer->wallTimeStartSeconds
+    };
+    adjustMeasurement(&wallTimeMeasurement);
+    *error = SCUNIT_ERROR_NONE;
+    return wallTimeMeasurement;
 }
 
-SCUnitError scunit_timer_getCPUTime(
-    const SCUnitTimer* timer,
-    SCUnitMeasurement* cpuTimeMeasurement
-) {
-    if ((timer == nullptr) || (cpuTimeMeasurement == nullptr)) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
+SCUnitMeasurement scunit_timer_getCPUTime(const SCUnitTimer* timer, SCUnitError* error) {
     if (timer->isRunning) {
-        return SCUNIT_ERROR_TIMER_RUNNING;
+        *error = SCUNIT_ERROR_TIMER_RUNNING;
+        return (SCUnitMeasurement) {
+            .time = 0.0,
+            .timeUnit = SCUNIT_TIME_UNIT_NANOSECONDS,
+            .timeUnitString = TIME_UNIT_STRINGS[SCUNIT_TIME_UNIT_NANOSECONDS]
+        };
     }
-    cpuTimeMeasurement->time = timer->cpuTimeEndSeconds - timer->cpuTimeStartSeconds;
-    scunit_adjustMeasurement(cpuTimeMeasurement);
-    return SCUNIT_ERROR_NONE;
+    SCUnitMeasurement cpuTimeMeasurement = {
+        .time = timer->cpuTimeEndSeconds - timer->cpuTimeStartSeconds
+    };
+    adjustMeasurement(&cpuTimeMeasurement);
+    *error = SCUNIT_ERROR_NONE;
+    return cpuTimeMeasurement;
 }
 
-SCUnitError scunit_timer_free(SCUnitTimer** timer) {
-    if (timer == nullptr) {
-        return SCUNIT_ERROR_ARGUMENT_NULL;
-    }
-    SCUNIT_FREE(*timer);
-    *timer = nullptr;
-    return SCUNIT_ERROR_NONE;
+void scunit_timer_free(SCUnitTimer* timer) {
+    SCUNIT_FREE(timer);
 }

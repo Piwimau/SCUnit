@@ -91,11 +91,11 @@ SCUnitColoredOutput scunit_getColoredOutput();
  *
  * @note The colored output is set to `SCUNIT_COLORED_OUTPUT_ENABLED` by default.
  *
- * @param[in] coloredOutput `SCUnitColoredOutput` to set the current state to.
- * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `coloredOutput` is not a valid
- * `SCUnitColoredOutput` and `SCUNIT_ERROR_NONE` otherwise.
+ * @param[in]  coloredOutput `SCUnitColoredOutput` to set the current state to.
+ * @param[out] error         `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `coloredOutput` is not a valid
+ *                           `SCUnitColoredOutput`, otherwise `SCUNIT_ERROR_NONE`.
  */
-SCUnitError scunit_setColoredOutput(SCUnitColoredOutput coloredOutput);
+void scunit_setColoredOutput(SCUnitColoredOutput coloredOutput, SCUnitError* error);
 
 /**
  * @brief Writes a formatted string to the standard output stream.
@@ -104,9 +104,8 @@ SCUnitError scunit_setColoredOutput(SCUnitColoredOutput coloredOutput);
  *                   `printf` family of functions.
  * @param[in] ...    Any number of additional arguments to be formatted and written based on the
  *                   given format string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `format` is `nullptr`,
- * `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stdout` failed and `SCUNIT_ERROR_NONE`
- * otherwise.
+ * @return `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stdout` failed,
+ * otherwise `SCUNIT_ERROR_NONE`.
  */
 SCUnitError scunit_printf(const char* format, ...);
 
@@ -120,9 +119,8 @@ SCUnitError scunit_printf(const char* format, ...);
  *                   `printf` family of functions.
  * @param[in] args   A `va_list` of arguments to be formatted and written based on the given format
  *                   string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `format` is `nullptr`,
- * `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stdout` failed and `SCUNIT_ERROR_NONE`
- * otherwise.
+ * @return `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stdout` failed,
+ * otherwise `SCUNIT_ERROR_NONE`.
  */
 SCUnitError scunit_vprintf(const char* format, va_list args);
 
@@ -133,16 +131,15 @@ SCUnitError scunit_vprintf(const char* format, va_list args);
  * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
  * `foreground` and `background` are ignored and the default terminal color is used instead.
  *
- * @param[in] foreground A `SCUnitColor` to use as the foreground color.
- * @param[in] background A `SCUnitColor` to use as the background color.
+ * @param[in] foreground An `SCUnitColor` to use as the foreground color.
+ * @param[in] background An `SCUnitColor` to use as the background color.
  * @param[in] format     A null-terminated format string following the same conventions as the
  *                       standard `printf` family of functions.
  * @param[in] ...        Any number of additional arguments to be formatted and written based on the
  *                       given format string.
  * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
- * `SCUnitColor`, `SCUNIT_ERROR_ARGUMENT_NULL` if `format` is `nullptr`,
- * `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stdout` failed and `SCUNIT_ERROR_NONE`
- * otherwise.
+ * `SCUnitColor`, `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stdout` failed and
+ * `SCUNIT_ERROR_NONE` otherwise.
  */
 SCUnitError scunit_printfc(
     SCUnitColor foreground,
@@ -161,16 +158,15 @@ SCUnitError scunit_printfc(
  * @attention This function does not explicitly call `va_end()` with the `args` parameter. Instead,
  * the caller is expected to do so in order to clean up any remaining resources.
  *
- * @param[in] foreground A `SCUnitColor` to use as the foreground color.
- * @param[in] background A `SCUnitColor` to use as the background color.
+ * @param[in] foreground An `SCUnitColor` to use as the foreground color.
+ * @param[in] background An `SCUnitColor` to use as the background color.
  * @param[in] format     A null-terminated format string following the same conventions as the
  *                       standard `printf` family of functions.
  * @param[in] args       A `va_list` of arguments to be formatted and written based on the given
  *                       format string.
  * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
- * `SCUnitColor`, `SCUNIT_ERROR_ARGUMENT_NULL` if `format` is `nullptr`,
- * `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stdout` failed and `SCUNIT_ERROR_NONE`
- * otherwise.
+ * `SCUnitColor`, `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stdout` failed and
+ * `SCUNIT_ERROR_NONE` otherwise.
  */
 SCUnitError scunit_vprintfc(
     SCUnitColor foreground,
@@ -187,9 +183,8 @@ SCUnitError scunit_vprintfc(
  *                        standard `printf` family of functions.
  * @param[in]      ...    Any number of additional arguments to be formatted and written based on
  *                        the given format string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `stream` or `format` is `nullptr`,
- * `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stream` failed and `SCUNIT_ERROR_NONE`
- * otherwise.
+ * @return `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stream` failed,
+ * otherwise `SCUNIT_ERROR_NONE`.
  */
 SCUnitError scunit_fprintf(FILE* stream, const char* format, ...);
 
@@ -204,9 +199,8 @@ SCUnitError scunit_fprintf(FILE* stream, const char* format, ...);
  *                        standard `printf` family of functions.
  * @param[in]      args   A `va_list` of arguments to be formatted and written based on the given
  *                        format string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `stream` or `format` is `nullptr`,
- * `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stream` failed and `SCUNIT_ERROR_NONE`
- * otherwise.
+ * @return `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stream` failed,
+ * otherwise `SCUNIT_ERROR_NONE`.
  */
 SCUnitError scunit_vfprintf(FILE* stream, const char* format, va_list args);
 
@@ -218,16 +212,15 @@ SCUnitError scunit_vfprintf(FILE* stream, const char* format, va_list args);
  * `foreground` and `background` are ignored and the default terminal color is used instead.
  *
  * @param[in, out] stream     Output stream to write the formatted string to.
- * @param[in]      foreground A `SCUnitColor` to use as the foreground color.
- * @param[in]      background A `SCUnitColor` to use as the background color.
+ * @param[in]      foreground An `SCUnitColor` to use as the foreground color.
+ * @param[in]      background An `SCUnitColor` to use as the background color.
  * @param[in]      format     A null-terminated format string following the same conventions as the
  *                            standard `printf` family of functions.
  * @param[in]      ...        Any number of additional arguments to be formatted and written based
  *                            on the given format string.
  * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
- * `SCUnitColor`, `SCUNIT_ERROR_ARGUMENT_NULL` if `stream` or `format` is `nullptr`,
- * `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stream` failed and `SCUNIT_ERROR_NONE`
- * otherwise.
+ * `SCUnitColor`, `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stream` failed and
+ * `SCUNIT_ERROR_NONE` otherwise.
  */
 SCUnitError scunit_fprintfc(
     FILE* stream,
@@ -248,16 +241,15 @@ SCUnitError scunit_fprintfc(
  * the caller is expected to do so in order to clean up any remaining resources.
  *
  * @param[in, out] stream     Output stream to write the formatted string to.
- * @param[in]      foreground A `SCUnitColor` to use as the foreground color.
- * @param[in]      background A `SCUnitColor` to use as the background color.
+ * @param[in]      foreground An `SCUnitColor` to use as the foreground color.
+ * @param[in]      background An `SCUnitColor` to use as the background color.
  * @param[in]      format     A null-terminated format string following the same conventions as the
  *                            standard `printf` family of functions.
  * @param[in]      args       A `va_list` of arguments to be formatted and written based on the
  *                            given format string.
  * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
- * `SCUnitColor`, `SCUNIT_ERROR_ARGUMENT_NULL` if `stream` or `format` is `nullptr`,
- * `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stream` failed and `SCUNIT_ERROR_NONE`
- * otherwise.
+ * `SCUnitColor`, `SCUNIT_ERROR_WRITING_STREAM_FAILED` if writing to `stream` failed and
+ * `SCUNIT_ERROR_NONE` otherwise.
  */
 SCUnitError scunit_vfprintfc(
     FILE* stream,
@@ -274,14 +266,6 @@ SCUnitError scunit_vfprintfc(
  * @note For convenience, `*buffer` is allowed to be `nullptr`, in which case `*size` must be equal
  * to zero (and vice versa). `*buffer` is then allocated to a certain initial size by this function.
  *
- * @details If `buffer`, `size` or `format` is `nullptr`, all arguments remain unchanged and
- * `SCUNIT_ERROR_ARGUMENT_NULL` is returned. The same holds true if `*size` is negative,
- * if `*buffer` is `nullptr` and `*size` is not equal to zero or if `*buffer` is not `nullptr` and
- * `*size` is equal to zero, except in these cases `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` is returned.
- *
- * If no error occurs, the formatted string is written to `*buffer` (resizing it as necessary),
- * `*buffer` is null-terminated and `SCUNIT_ERROR_NONE` is returned.
- *
  * @warning If an out-of-memory condition occurs or if writing to `*buffer` fails, both `*buffer`
  * and `*size` retain the original state they were in before the failed operation. Note however that
  * the content of the string pointed to by `*buffer` is indeterminate in this case (i. e. it may
@@ -296,9 +280,8 @@ SCUnitError scunit_vfprintfc(
  *                        standard `printf` family of functions.
  * @param[in]      ...    Any number of additional arguments to be formatted and written based on
  *                        the given format string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `buffer`, `size` or `format` is `nullptr`,
- * `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` is negative, if `*buffer` is `nullptr` and
- * `*size` is not equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero,
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` is negative, if `*buffer` is `nullptr`
+ * and `*size` is not equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero,
  * `SCUNIT_ERROR_OUT_OF_MEMORY` if resizing `*buffer` failed due to an out-of-memory condition,
  * `SCUNIT_ERROR_WRITING_BUFFER_FAILED` if writing to `*buffer` failed and `SCUNIT_ERROR_NONE`
  * otherwise.
@@ -311,14 +294,6 @@ SCUnitError scunit_rsnprintf(char** buffer, int64_t* size, const char* format, .
  *
  * @note For convenience, `*buffer` is allowed to be `nullptr`, in which case `*size` must be equal
  * to zero (and vice versa). `*buffer` is then allocated to a certain initial size by this function.
- *
- * @details If `buffer`, `size` or `format` is `nullptr`, all arguments remain unchanged and
- * `SCUNIT_ERROR_ARGUMENT_NULL` is returned. The same holds true if `*size` is negative,
- * if `*buffer` is `nullptr` and `*size` is not equal to zero or if `*buffer` is not `nullptr` and
- * `*size` is equal to zero, except in these cases `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` is returned.
- *
- * If no error occurs, the formatted string is written to `*buffer` (resizing it as necessary),
- * `*buffer` is null-terminated and `SCUNIT_ERROR_NONE` is returned.
  *
  * @attention This function does not explicitly call `va_end()` with the `args` parameter. Instead,
  * the caller is expected to do so in order to clean up any remaining resources.
@@ -337,9 +312,8 @@ SCUnitError scunit_rsnprintf(char** buffer, int64_t* size, const char* format, .
  *                        standard `printf` family of functions.
  * @param[in]      args   A `va_list` of arguments to be formatted and written based on the given
  *                        format string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `buffer`, `size` or `format` is `nullptr`,
- * `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` is negative, if `*buffer` is `nullptr` and
- * `*size` is not equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero,
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` is negative, if `*buffer` is `nullptr`
+ * and `*size` is not equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero,
  * `SCUNIT_ERROR_OUT_OF_MEMORY` if resizing `*buffer` failed due to an out-of-memory condition,
  * `SCUNIT_ERROR_WRITING_BUFFER_FAILED` if writing to `*buffer` failed and `SCUNIT_ERROR_NONE`
  * otherwise.
@@ -357,15 +331,6 @@ SCUnitError scunit_vrsnprintf(char** buffer, int64_t* size, const char* format, 
  * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
  * `foreground` and `background` are ignored and the default terminal color is used instead.
  *
- * @details If `buffer`, `size` or `format` is `nullptr`, all arguments remain unchanged and
- * `SCUNIT_ERROR_ARGUMENT_NULL` is returned. The same holds true if `foreground` or `background` is
- * not a valid `SCUnitColor`, if `*size` is negative, if `*buffer` is `nullptr` and `*size` is not
- * equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero, except in these
- * cases `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` is returned.
- *
- * If no error occurs, the formatted string is written to `*buffer` (resizing it as necessary),
- * `*buffer` is null-terminated and `SCUNIT_ERROR_NONE` is returned.
- *
  * @warning If an out-of-memory condition occurs or if writing to `*buffer` fails, both `*buffer`
  * and `*size` retain the original state they were in before the failed operation. Note however that
  * the content of the string pointed to by `*buffer` is indeterminate in this case (i. e. it may
@@ -377,14 +342,13 @@ SCUnitError scunit_vrsnprintf(char** buffer, int64_t* size, const char* format, 
  * @param[in, out] size       Size of the dynamically allocated output buffer (including the
  *                            terminating `\0` byte). The size is updated whenever `*buffer` is
  *                            resized.
- * @param[in]      foreground A `SCUnitColor` to use as the foreground color.
- * @param[in]      background A `SCUnitColor` to use as the background color.
+ * @param[in]      foreground An `SCUnitColor` to use as the foreground color.
+ * @param[in]      background An `SCUnitColor` to use as the background color.
  * @param[in]      format     A null-terminated format string following the same conventions as the
  *                            standard `printf` family of functions.
  * @param[in]      ...        Any number of additional arguments to be formatted and written based
  *                            on the given format string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `buffer`, `size` or `format` is `nullptr`,
- * `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
  * `SCUnitColor`, if `*size` is negative, if `*buffer` is `nullptr` and `*size` is not equal to zero
  * or if `*buffer` is not `nullptr` and `*size` is equal to zero, `SCUNIT_ERROR_OUT_OF_MEMORY` if
  * resizing `*buffer` failed due to an out-of-memory condition,
@@ -411,15 +375,6 @@ SCUnitError scunit_rsnprintfc(
  * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
  * `foreground` and `background` are ignored and the default terminal color is used instead.
  *
- * @details If `buffer`, `size` or `format` is `nullptr`, all arguments remain unchanged and
- * `SCUNIT_ERROR_ARGUMENT_NULL` is returned. The same holds true if `foreground` or `background` is
- * not a valid `SCUnitColor`, if `*size` is negative, if `*buffer` is `nullptr` and `*size` is not
- * equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero, except in these
- * cases `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` is returned.
- *
- * If no error occurs, the formatted string is written to `*buffer` (resizing it as necessary),
- * `*buffer` is null-terminated and `SCUNIT_ERROR_NONE` is returned.
- *
  * @attention This function does not explicitly call `va_end()` with the `args` parameter. Instead,
  * the caller is expected to do so in order to clean up any remaining resources.
  *
@@ -434,14 +389,13 @@ SCUnitError scunit_rsnprintfc(
  * @param[in, out] size       Size of the dynamically allocated output buffer (including the
  *                            terminating `\0` byte). The size is updated whenever `*buffer` is
  *                            resized.
- * @param[in]      foreground A `SCUnitColor` to use as the foreground color.
- * @param[in]      background A `SCUnitColor` to use as the background color.
+ * @param[in]      foreground An `SCUnitColor` to use as the foreground color.
+ * @param[in]      background An `SCUnitColor` to use as the background color.
  * @param[in]      format     A null-terminated format string following the same conventions as the
  *                            standard `printf` family of functions.
  * @param[in]      args       A `va_list` of arguments to be formatted and written based on the
  *                            given format string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `buffer`, `size` or `format` is `nullptr`,
- * `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
  * `SCUnitColor`, if `*size` is negative, if `*buffer` is `nullptr` and `*size` is not equal to zero
  * or if `*buffer` is not `nullptr` and `*size` is equal to zero, `SCUNIT_ERROR_OUT_OF_MEMORY` if
  * resizing `*buffer` failed due to an out-of-memory condition,
@@ -464,15 +418,6 @@ SCUnitError scunit_vrsnprintfc(
  * @note For convenience, `*buffer` is allowed to be `nullptr`, in which case `*size` must be equal
  * to zero (and vice versa). `*buffer` is then allocated to a certain initial size by this function.
  *
- * @details If `buffer`, `size` or `format` is `nullptr`, all arguments remain unchanged and
- * `SCUNIT_ERROR_ARGUMENT_NULL` is returned. The same holds true if `*size` is negative,
- * if `*buffer` is `nullptr` and `*size` is not equal to zero or if `*buffer` is not `nullptr` and
- * `*size` is equal to zero, except in these cases `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` is returned.
- *
- * If no error occurs, the formatted string is appended to `*buffer` (resizing it as necessary) at
- * the previous terminating `\0` byte (overwriting it with the first byte of the formatted string),
- * `*buffer` is null-terminated and `SCUNIT_ERROR_NONE` is returned.
- *
  * @warning If an out-of-memory condition occurs or if appending to `*buffer` fails, both `*buffer`
  * and `*size` retain the original state they were in before the failed operation. Note however that
  * the content of the string pointed to by `*buffer` is indeterminate in this case (i. e. it may
@@ -487,9 +432,8 @@ SCUnitError scunit_vrsnprintfc(
  *                        standard `printf` family of functions.
  * @param[in]      ...    Any number of additional arguments to be formatted and appended based on
  *                        the given format string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `buffer`, `size` or `format` is `nullptr`,
- * `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` is negative, if `*buffer` is `nullptr` and
- * `*size` is not equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero,
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` is negative, if `*buffer` is `nullptr`
+ * and `*size` is not equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero,
  * `SCUNIT_ERROR_OUT_OF_MEMORY` if resizing `*buffer` failed due to an out-of-memory condition,
  * `SCUNIT_ERROR_WRITING_BUFFER_FAILED` if appending to `*buffer` failed and `SCUNIT_ERROR_NONE`
  * otherwise.
@@ -502,15 +446,6 @@ SCUnitError scunit_rasnprintf(char** buffer, int64_t* size, const char* format, 
  *
  * @note For convenience, `*buffer` is allowed to be `nullptr`, in which case `*size` must be equal
  * to zero (and vice versa). `*buffer` is then allocated to a certain initial size by this function.
- *
- * @details If `buffer`, `size` or `format` is `nullptr`, all arguments remain unchanged and
- * `SCUNIT_ERROR_ARGUMENT_NULL` is returned. The same holds true if `*size` is negative,
- * if `*buffer` is `nullptr` and `*size` is not equal to zero or if `*buffer` is not `nullptr` and
- * `*size` is equal to zero, except in these cases `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` is returned.
- *
- * If no error occurs, the formatted string is appended to `*buffer` (resizing it as necessary) at
- * the previous terminating `\0` byte (overwriting it with the first byte of the formatted string),
- * `*buffer` is null-terminated and `SCUNIT_ERROR_NONE` is returned.
  *
  * @attention This function does not explicitly call `va_end()` with the `args` parameter. Instead,
  * the caller is expected to do so in order to clean up any remaining resources.
@@ -529,9 +464,8 @@ SCUnitError scunit_rasnprintf(char** buffer, int64_t* size, const char* format, 
  *                        standard `printf` family of functions.
  * @param[in]      args   A `va_list` of arguments to be formatted and appended based on the given
  *                        format string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `buffer`, `size` or `format` is `nullptr`,
- * `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` is negative, if `*buffer` is `nullptr` and
- * `*size` is not equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero,
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` is negative, if `*buffer` is `nullptr`
+ * and `*size` is not equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero,
  * `SCUNIT_ERROR_OUT_OF_MEMORY` if resizing `*buffer` failed due to an out-of-memory condition,
  * `SCUNIT_ERROR_WRITING_BUFFER_FAILED` if appending to `*buffer` failed and `SCUNIT_ERROR_NONE`
  * otherwise.
@@ -549,16 +483,6 @@ SCUnitError scunit_vrasnprintf(char** buffer, int64_t* size, const char* format,
  * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
  * `foreground` and `background` are ignored and the default terminal color is used instead.
  *
- * @details If `buffer`, `size` or `format` is `nullptr`, all arguments remain unchanged and
- * `SCUNIT_ERROR_ARGUMENT_NULL` is returned. The same holds true if `foreground` or `background` is
- * not a valid `SCUnitColor`, if `*size` is negative, if `*buffer` is `nullptr` and `*size` is not
- * equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero, except in these
- * cases `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` is returned.
- *
- * If no error occurs, the formatted string is appended to `*buffer` (resizing it as necessary) at
- * the previous terminating `\0` byte (overwriting it with the first byte of the formatted string),
- * `*buffer` is null-terminated and `SCUNIT_ERROR_NONE` is returned.
- *
  * @warning If an out-of-memory condition occurs or if appending to `*buffer` fails, both `*buffer`
  * and `*size` retain the original state they were in before the failed operation. Note however that
  * the content of the string pointed to by `*buffer` is indeterminate in this case (i. e. it may
@@ -570,14 +494,13 @@ SCUnitError scunit_vrasnprintf(char** buffer, int64_t* size, const char* format,
  * @param[in, out] size       Size of the dynamically allocated output buffer (including the
  *                            terminating `\0` byte). The size is updated whenever `*buffer` is
  *                            resized.
- * @param[in]      foreground A `SCUnitColor` to use as the foreground color.
- * @param[in]      background A `SCUnitColor` to use as the background color.
+ * @param[in]      foreground An `SCUnitColor` to use as the foreground color.
+ * @param[in]      background An `SCUnitColor` to use as the background color.
  * @param[in]      format     A null-terminated format string following the same conventions as the
  *                            standard `printf` family of functions.
  * @param[in]      ...        Any number of additional arguments to be formatted and appended based
  *                            on the given format string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `buffer`, `size` or `format` is `nullptr`,
- * `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
  * `SCUnitColor`, if `*size` is negative, if `*buffer` is `nullptr` and `*size` is not equal to zero
  * or if `*buffer` is not `nullptr` and `*size` is equal to zero, `SCUNIT_ERROR_OUT_OF_MEMORY` if
  * resizing `*buffer` failed due to an out-of-memory condition,
@@ -604,16 +527,6 @@ SCUnitError scunit_rasnprintfc(
  * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
  * `foreground` and `background` are ignored and the default terminal color is used instead.
  *
- * @details If `buffer`, `size` or `format` is `nullptr`, all arguments remain unchanged and
- * `SCUNIT_ERROR_ARGUMENT_NULL` is returned. The same holds true if `foreground` or `background` is
- * not a valid `SCUnitColor`, if `*size` is negative, if `*buffer` is `nullptr` and `*size` is not
- * equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero, except in these
- * cases `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` is returned.
- *
- * If no error occurs, the formatted string is appended to `*buffer` (resizing it as necessary) at
- * the previous terminating `\0` byte (overwriting it with the first byte of the formatted string),
- * `*buffer` is null-terminated and `SCUNIT_ERROR_NONE` is returned.
- *
  * @attention This function does not explicitly call `va_end()` with the `args` parameter. Instead,
  * the caller is expected to do so in order to clean up any remaining resources.
  *
@@ -628,14 +541,13 @@ SCUnitError scunit_rasnprintfc(
  * @param[in, out] size       Size of the dynamically allocated output buffer (including the
  *                            terminating `\0` byte). The size is updated whenever `*buffer` is
  *                            resized.
- * @param[in]      foreground A `SCUnitColor` to use as the foreground color.
- * @param[in]      background A `SCUnitColor` to use as the background color.
+ * @param[in]      foreground An `SCUnitColor` to use as the foreground color.
+ * @param[in]      background An `SCUnitColor` to use as the background color.
  * @param[in]      format     A null-terminated format string following the same conventions as the
  *                            standard `printf` family of functions.
  * @param[in]      args       A `va_list` of arguments to be formatted and appended based on the
  *                            given format string.
- * @return `SCUNIT_ERROR_ARGUMENT_NULL` if `buffer`, `size` or `format` is `nullptr`,
- * `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `foreground` or `background` is not a valid
  * `SCUnitColor`, if `*size` is negative, if `*buffer` is `nullptr` and `*size` is not equal to zero
  * or if `*buffer` is not `nullptr` and `*size` is equal to zero, `SCUNIT_ERROR_OUT_OF_MEMORY` if
  * resizing `*buffer` failed due to an out-of-memory condition,
