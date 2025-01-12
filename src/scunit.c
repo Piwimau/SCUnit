@@ -1,14 +1,37 @@
+#include <getopt.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <SCUnit/scunit.h>
 
+/** @brief Represents a long command line option. */
+typedef struct option SCUnitLongOption;
+
 /** @brief Version information of SCUnit. */
 static constexpr SCUnitVersion VERSION = { .major = 0, .minor = 2, .patch = 1 };
 
 /** @brief Growth factor used for resizing the array of suites. */
 static constexpr int64_t GROWTH_FACTOR = 2;
+
+/**
+ * @brief Supported short command line options.
+ *
+ * @note The leading '-' causes `getopt_long()` to handle nonoption arguments as if they were the
+ * argument of an option, allowing us to directly recognize and report unexpected arguments.
+ *
+ * The first ':' causes `getopt_long()` to return ':' instead of '?' to indicate a missing option
+ * argument, which is used to differentiate this case from an unknown option.
+ */
+static const char* const SHORT_OPTIONS = "-:hv";
+
+/** @brief Supported long command line options. */
+static const SCUnitLongOption LONG_OPTIONS[] = {
+    { "help", no_argument, nullptr, 'h' },
+    { "version", no_argument, nullptr, 'v' },
+    { "colored-output", required_argument, nullptr, 0 },
+    { nullptr, no_argument, nullptr, 0 }
+};
 
 /**
  * @brief Suites registered to be run automatically by SCUnit.
@@ -57,62 +80,83 @@ void scunit_registerSuite(SCUnitSuite* suite, SCUnitError* error) {
  * @param[in] argv Command line arguments passed to the test executable.
  */
 static void scunit_parseArguments(int argc, char** argv) {
-    for (int i = 1; i < argc; i++) {
-        if ((strcmp(argv[i], "-h") == 0) || (strcmp(argv[i], "--help") == 0)) {
-            scunit_printf("Usage: <executable> [");
-            scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "OPTION");
-            scunit_printf("]...\n\nOptions:\n");
-            scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "  -h");
-            scunit_printf(", ");
-            scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "--help");
-            scunit_printf("                           Print this help message and exit.\n");
-            scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "  -v");
-            scunit_printf(", ");
-            scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "--version");
-            scunit_printf("                        Print version information and exit.\n");
-            scunit_printfc(
-                SCUNIT_COLOR_DARK_CYAN,
-                SCUNIT_COLOR_DARK_DEFAULT,
-                "  --colored-output"
-            );
-            scunit_printf(
-                "={disabled|enabled}  Enable or disable colored output (default = enabled).\n"
-                "                                       Only has an effect on subsequent options.\n"
-            );
-            exit(EXIT_SUCCESS);
-        }
-        else if ((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--version") == 0)) {
-            scunit_printf(
-                "SCUnit %" PRId32 ".%" PRId32 ".%" PRId32 "\n",
-                VERSION.major,
-                VERSION.minor,
-                VERSION.patch
-            );
-            exit(EXIT_SUCCESS);
-        }
-        else if (strcmp(argv[i], "--colored-output=disabled") == 0) {
-            SCUnitError error;
-            scunit_setColoredOutput(SCUNIT_COLORED_OUTPUT_DISABLED, &error);
-        }
-        else if (strcmp(argv[i], "--colored-output=enabled") == 0) {
-            SCUnitError error;
-            scunit_setColoredOutput(SCUNIT_COLORED_OUTPUT_ENABLED, &error);
-        }
-        else {
-            scunit_fprintf(stderr, "Unknown option ");
-            scunit_fprintfc(
-                stderr,
-                SCUNIT_COLOR_DARK_RED,
-                SCUNIT_COLOR_DARK_DEFAULT,
-                "%s",
-                argv[i]
-            );
-            scunit_fprintf(stderr, ". Try option ");
-            scunit_fprintfc(stderr, SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "-h");
-            scunit_fprintf(stderr, " or ");
-            scunit_fprintfc(stderr, SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "--help");
-            scunit_fprintf(stderr, " for more information.\n");
-            exit(EXIT_FAILURE);
+    // Disable error messages of `getopt_long()`.
+    opterr = 0;
+    int option;
+    int optionIndex;
+    while ((option = getopt_long(argc, argv, SHORT_OPTIONS, LONG_OPTIONS, &optionIndex)) != -1) {
+        switch (option) {
+            case 'h':
+                scunit_printf(
+                    "Usage: %s [OPTION]...\n"
+                    "\n"
+                    "Options:\n"
+                    "  -h, --help                           Display this help and exit.\n"
+                    "  -v, --version                        Display version information and exit.\n"
+                    "  --colored-output={disabled|enabled}  Enable or disable colored output "
+                    "(default = enabled).\n",
+                    argv[0]
+                );
+                exit(EXIT_SUCCESS);
+            case 'v':
+                scunit_printf(
+                    "SCUnit %" PRId32 ".%" PRId32 ".%" PRId32 "\n",
+                    VERSION.major,
+                    VERSION.minor,
+                    VERSION.patch
+                );
+                exit(EXIT_SUCCESS);
+            case 0:
+                const char* optionName = LONG_OPTIONS[optionIndex].name;
+                if (strcmp(optarg, "disabled") == 0) {
+                    SCUnitError error;
+                    scunit_setColoredOutput(SCUNIT_COLORED_OUTPUT_DISABLED, &error);
+                }
+                else if (strcmp(optarg, "enabled") == 0) {
+                    SCUnitError error;
+                    scunit_setColoredOutput(SCUNIT_COLORED_OUTPUT_ENABLED, &error);
+                }
+                else {
+                    scunit_fprintf(
+                        stderr,
+                        "Invalid argument '%s' for option '--%s'.\n"
+                        "Try option '-h' or '--help' for more information.\n",
+                        optarg,
+                        optionName
+                    );
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            case 1:
+                scunit_fprintf(
+                    stderr,
+                    "Unexpected argument '%s'.\n"
+                    "Try option '-h' or '--help' for more information.\n",
+                    optarg
+                );
+                exit(EXIT_FAILURE);
+            case ':':
+                scunit_fprintf(
+                    stderr,
+                    "Missing argument for option '%s'.\n"
+                    "Try option '-h' or '--help' for more information.\n",
+                    argv[optind - 1]
+                );
+                exit(EXIT_FAILURE);
+            case '?':
+                scunit_fprintf(stderr, "Unknown option '");
+                if (optopt == 0) {
+                    scunit_fprintf(stderr, "%s", argv[optind - 1]);
+                }
+                else {
+                    scunit_fprintf(stderr, "-%c", optopt);
+                }
+                scunit_fprintf(
+                    stderr,
+                    "'.\n"
+                    "Try option '-h' or '--help' for more information.\n"
+                );
+                exit(EXIT_FAILURE);
         }
     }
 }

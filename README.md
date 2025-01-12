@@ -63,7 +63,7 @@ if you want to dive deeper and take full advantage of SCUnit:
 ## How do you build SCUnit?
 
 SCUnit is written in pure C23 and does not really have any dependencies other than the C standard
-library and a compliant compiler. However, it does use two features that might not be available on
+library and a compliant compiler. However, it does use three features that might not be available on
 all platforms:
 
 * The automatic discovery and registration of suites and tests is implemented using a
@@ -81,6 +81,10 @@ all platforms:
   case, I can highly recommend [MSYS2](https://www.msys2.org) as a solution. Another alternative
   would be to rely on a platform-specific, more feature-rich timer and change the underlying
   implementation.
+* Command line arguments passed to the test executable are parsed using the function
+  [`getopt_long()`](https://linux.die.net/man/3/getopt_long), which is a GNU extension of
+  [`getopt()`](https://www.man7.org/linux/man-pages/man3/getopt.3.html) to support long command line
+  options like `--help` or `--version` in addition to the standard short ones.
 
 If your platform supports these two features, you can go ahead and build SCUnit from source using
 the provided [Makefile](Makefile). Run `make help` first to see a useful overview of all options,
@@ -90,15 +94,14 @@ which should produce something like this:
 Usage: make [TARGET]... [VARIABLE]...
 
 Targets:
-  all     Build both a static and a shared library (default).
+  all     Build both a static and shared library (default).
   static  Build only a static library.
   shared  Build only a shared library.
   clean   Remove all build artifacts.
-  help    Print this help message.
+  help    Display this help.
 
 Variables:
-  COLORED_OUTPUT={disabled|enabled}  Enable or disable colored output (default = enabled).
-  BUILD_TYPE={debug|release}         Set the build type (default = release).
+  BUILD_TYPE={debug|release}  Set the build type (default = release).
 ```
 
 SCUnit can be built and linked as a static or shared library, whichever you prefer. Run `make all`
