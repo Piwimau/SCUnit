@@ -23,7 +23,7 @@ typedef enum SCUnitResult {
 } SCUnitResult;
 
 /**
- * @brief Initializes a new `SCUnitContext`.
+ * @brief Allocates and initializes a new `SCUnitContext`.
  *
  * @note Allocation of an `SCUnitContext` is handled automatically by the `SCUnitSuite` containing
  * the relevant test. You should not use this function, it is intended for internal use only.

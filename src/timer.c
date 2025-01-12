@@ -3,9 +3,6 @@
 #include <SCUnit/memory.h>
 #include <SCUnit/timer.h>
 
-/** @brief Represents a time interval broken down into seconds and nanoseconds. */
-typedef struct timespec SCUnitTimespec;
-
 struct SCUnitTimer {
 
     /** @brief Start point of measuring the elapsed wall time (in seconds). */
@@ -24,6 +21,9 @@ struct SCUnitTimer {
     bool isRunning;
 
 };
+
+/** @brief Represents a time interval broken down into seconds and nanoseconds. */
+typedef struct timespec SCUnitTimespec;
 
 /** @brief Number of nanoseconds in a single second (10^9 ns = 1 s). */
 static constexpr int32_t NANOSECONDS_PER_SECOND = 1'000'000'000;

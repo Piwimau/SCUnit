@@ -56,9 +56,9 @@ typedef struct SCUnitMeasurement {
 } SCUnitMeasurement;
 
 /**
- * @brief Initializes a new `SCUnitTimer`.
+ * @brief Allocates and initializes a new `SCUnitTimer`.
  *
- * @warning The `SCUnitTimer` returned by this function is dynamically allocated and must be passed
+ * @warning An `SCUnitTimer` returned by this function is dynamically allocated and must be passed
  * to `scunit_timer_free()` to avoid a memory leak.
  *
  * @param[out] error `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,

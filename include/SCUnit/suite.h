@@ -7,7 +7,6 @@
 #include <SCUnit/context.h>
 #include <SCUnit/error.h>
 #include <SCUnit/print.h>
-#include <SCUnit/timer.h>
 
 /**
  * @brief Represents a suite setup function that is called before all tests of an `SCUnitSuite`
@@ -59,7 +58,7 @@ typedef struct SCUnitSummary {
 } SCUnitSummary;
 
 /**
- * @brief Initializes and automatically registers an `SCUnitSuite` with a given name.
+ * @brief Defines and automatically registers an `SCUnitSuite` with a given name.
  *
  * @note This macro is intended to be used at file scope and before any setup, teardown or test
  * functions are registered using the other macros below.
@@ -108,7 +107,7 @@ typedef struct SCUnitSummary {
     static constexpr bool scunit_suite##name##Registered = true
 
 /**
- * @brief Initializes and automatically registers an `SCUnitSuite` with a given name.
+ * @brief Defines and automatically registers an `SCUnitSuite` with a given name.
  *
  * @note This macro is intended to be used at file scope and before any setup, teardown or test
  * functions are registered using the other macros below.
@@ -281,7 +280,7 @@ typedef struct SCUnitSummary {
     static void scunit_suite##suite##Test##name([[maybe_unused]] SCUnitContext* scunit_context)
 
 /**
- * @brief Initializes a new `SCUnitSuite` with a given name.
+ * @brief Allocates and initializes a new `SCUnitSuite` with a given name.
  *
  * @warning The `name` is copied internally for reasons of safety. If you pass a dynamically
  * allocated string, you are responsible for deallocating it yourself.
@@ -402,7 +401,7 @@ void scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitEr
  *
  * @note For convenience, `suite` is allowed to be `nullptr`.
  *
- * @warning Suites created using the `SCUNIT_SUITE()` or `SCUNIT_PARTIAL_SUITE()` macros or
+ * @warning Suites defined using the `SCUNIT_SUITE()` or `SCUNIT_PARTIAL_SUITE()` macros or
  * registered using `scunit_registerSuite()` from `<SCUnit/scunit.h>` are owned by SCUnit itself.
  * You must not deallocate these suites manually.
  *

@@ -1,6 +1,4 @@
 #include <inttypes.h>
-#include <math.h>
-#include <stdint.h>
 #include <string.h>
 #include <SCUnit/memory.h>
 #include <SCUnit/print.h>
