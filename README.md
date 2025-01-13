@@ -40,10 +40,10 @@ Some of the key features for which you might consider using SCUnit include:
 * A minimal, yet useful set of assertions for checking various conditions in tests.
 * Ability to group logically related tests into suites. Particularly large suites can even be
   distributed across multiple source files for readability.
-* Support for suite/test setup and teardown functions.
-* Accurate and optionally colored diagnostic messages on `stdout` and `stderr` that not only inform
-  you of the status of a test, but also include execution time measurements and some helpful context
-  when an assertion fails.
+* Support for suite or test setup and teardown functions.
+* Accurate and optionally colored diagnostic output on `stdout` and `stderr` that not only informs
+  you of the status of a test, but also includes execution time measurements and some helpful
+  context when an assertion fails.
 * Ability to configure SCUnit (if required at all) by passing command line arguments to the test
   executable.
 
@@ -52,28 +52,28 @@ if you want to dive deeper and take full advantage of SCUnit:
 
 * A well-documented API (down to the very last implementation detail) that allows you to understand
   why SCUnit is written the way it is and how it is intended to be used.
-* Consistent and predictable error handling using a custom error enumeration type.
-* Ability to manually register and run suites and tests using a normal function API if you need full
-  control.
+* Consistent and predictable error handling using an error enumeration.
+* Ability to manually register and execute suites and tests using a normal function API if you need
+  the full control.
 * Ability to replace the functions for dynamic memory management (e. g. for debugging purposes).
-* A small utility module for printing formatted and optionally colored strings to streams and
-  buffers.
+* A utility module for printing formatted and optionally colored strings to streams and buffers.
 * A simple timer for measuring the elapsed wall or CPU time required to execute a block of code.
 
 ## How do you build SCUnit?
 
-SCUnit is written in pure C23 and does not really have any dependencies other than the C standard
-library and a compliant compiler. However, it does use three features that might not be available on
+SCUnit is written in pure C23 and does not have many dependencies besides the C standard library and
+a compliant C23 compiler. Specifically, it does use three features that might not be available on
 all platforms:
 
-* The automatic discovery and registration of suites and tests is implemented using a
-  compiler-specific attribute called `__attribute__((constructor))` (or `[[gnu::constructor]]` in
-  the new syntax), which causes an annotated function to be run before `main()` is executed.
-  This attribute is supported by GCC and Clang, but not by MSVC, which shouldn't be too much of a
-  problem since it doesn't have adequate C23 support at the moment anyway. If you absolutely need
+* The automatic allocation, registration and deallocation of suites and tests is implemented using
+  compiler-specific attributes called `__attribute__((constructor))` and
+  `__attribute__((destructor))` (or `[[gnu::constructor]]` and `[[gnu::destructor]]` in the new C23
+  syntax), which cause an annotated function to be executed before `main()` itself is.
+  These attributes are supported by GCC and Clang, but not by MSVC, which shouldn't be too much of
+  an issue since it doesn't have adequate C23 support at the moment anyway. If you absolutely need
   the automatic registration in conjunction with MSVC, you should be able to find various
   workarounds related to linker sections fairly easily on internet.
-* The simple timer used by SCUnit to measure the elapsed wall and CPU time of tests and suites is
+* The simple timer used by SCUnit to measure the elapsed wall and CPU time of suites and tests is
   implemented using the POSIX function
   [`clock_gettime()`](https://man7.org/linux/man-pages/man3/clock_gettime.3.html). This is mainly
   due to the lack of other suitable and portable options in the C standard library.
@@ -86,8 +86,8 @@ all platforms:
   [`getopt()`](https://www.man7.org/linux/man-pages/man3/getopt.3.html) to support long command line
   options like `--help` or `--version` in addition to the standard short ones.
 
-If your platform supports these two features, you can go ahead and build SCUnit from source using
-the provided [Makefile](Makefile). Run `make help` first to see a useful overview of all options,
+If your platform supports these features, you can go ahead and build SCUnit from source using the
+provided [Makefile](Makefile). Run `make help` first to see a useful overview of all options,
 which should produce something like this:
 
 ```plaintext
@@ -131,7 +131,7 @@ project. However, these are the general steps you need to follow:
    start writing tests. You'll probably spend most of your time working with the contents of the
    [`<SCUnit/suite.h>`](include/SCUnit/suite.h) and [`<SCUnit/assert.h>`](include/SCUnit/assert.h)
    headers, which contain the main functionality needed to define suites, tests, setup and teardown
-   functions, as well as general assertions to be used in tests.
+   functions, as well as assertions to be used in tests.
 
 3. Link SCUnit as a static or shared library when you build your test executable.
 
@@ -159,11 +159,11 @@ see what I can do.
 
 ## Acknowledgements
 
-I got the idea to create SCUnit when I stumbled across
+I originally got the idea to create SCUnit when I stumbled across
 [this](https://www.youtube.com/watch?v=z-uWt5wVVkU) nice talk by Benno Rice, in which he presented
 some of the issues related to unit testing C code and two example frameworks one could use.
 
-SCUnit has been inspired by many other existing frameworks, including (but not limited to)
+SCUnit was inspired by many other existing frameworks, including (but not limited to)
 [Google Test](https://github.com/google/googletest), [Check](https://github.com/libcheck/check),
 [Unity](https://github.com/ThrowTheSwitch/Unity), [Tau](https://github.com/jasmcaus/tau),
 [µnit](https://nemequ.github.io/munit), [tst](https://github.com/rdentato/tst) and

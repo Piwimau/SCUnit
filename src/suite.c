@@ -30,36 +30,38 @@ struct SCUnitSuite {
     char* name;
 
     /**
-     * @brief Optional suite setup function to run before executing all tests in this `SCUnitSuite`.
+     * @brief Optional suite setup function to execute before executing all tests in this
+     * `SCUnitSuite`.
      *
      * @note Each `SCUnitSuite` can only have one `SCUnitSuiteSetup` function. If equal to
-     * `nullptr`, nothing is registered to be run.
+     * `nullptr`, nothing is registered to be executed.
      */
     SCUnitSuiteSetup suiteSetup;
 
     /**
-     * @brief Optional suite teardown function to run after executing all tests in this
+     * @brief Optional suite teardown function to execute after executing all tests in this
      * `SCUnitSuite`.
      *
      * @note Each `SCUnitSuite` can only have one `SCUnitSuiteTeardown` function. If equal to
-     * `nullptr`, nothing is registered to be run.
+     * `nullptr`, nothing is registered to be executed.
      */
     SCUnitSuiteTeardown suiteTeardown;
 
     /**
-     * @brief Optional test setup function to run before each individual test in this `SCUnitSuite`.
+     * @brief Optional test setup function to execute before each individual test in this
+     * `SCUnitSuite`.
      *
      * @note Each `SCUnitSuite` can only have one `SCUnitTestSetup` function. If equal to `nullptr`,
-     * nothing is registered to be run.
+     * nothing is registered to be executed.
      */
     SCUnitTestSetup testSetup;
 
     /**
-     * @brief Optional test teardown function to run after each individual test in this
+     * @brief Optional test teardown function to execute after each individual test in this
      * `SCUnitSuite`.
      *
      * @note Each `SCUnitSuite` can only have one `SCUnitTestTeardown` function. If equal to
-     * `nullptr`, nothing is registered to be run.
+     * `nullptr`, nothing is registered to be executed.
      */
     SCUnitTestTeardown testTeardown;
 

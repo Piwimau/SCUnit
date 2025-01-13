@@ -43,16 +43,16 @@ typedef void (*SCUnitTestFunction)([[maybe_unused]] SCUnitContext* scunit_contex
 /** @brief Represents a suite for grouping logically related tests together. */
 typedef struct SCUnitSuite SCUnitSuite;
 
-/** @brief Represents a summary produced while running an `SCUnitSuite`. */
+/** @brief Represents a summary produced while executing an `SCUnitSuite`. */
 typedef struct SCUnitSummary {
 
-    /** @brief Number of tests that passed while running an `SCUnitSuite`. */
+    /** @brief Number of tests that passed while executing an `SCUnitSuite`. */
     int64_t passedTests;
 
-    /** @brief Number of tests that were skipped while running an `SCUnitSuite`. */
+    /** @brief Number of tests that were skipped while executing an `SCUnitSuite`. */
     int64_t skippedTests;
 
-    /** @brief Number of tests that failed while running an `SCUnitSuite`. */
+    /** @brief Number of tests that failed while executing an `SCUnitSuite`. */
     int64_t failedTests;
 
 } SCUnitSummary;
@@ -373,7 +373,7 @@ void scunit_suite_registerTest(
 );
 
 /**
- * @brief Runs a given `SCUnitSuite`.
+ * @brief Executes a given `SCUnitSuite`.
  *
  * @note This function produces a lot of useful diagnostic output on `stdout` and `stderr`, such as
  * names of suites and tests, results, time measurements, detailed error messages whenever an
@@ -383,7 +383,7 @@ void scunit_suite_registerTest(
  * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, the default color
  * is used instead. See `<SCUnit/scunit.h>` for more information.
  *
- * @param[in]  suite   `SCUnitSuite` to run.
+ * @param[in]  suite   `SCUnitSuite` to execute.
  * @param[out] summary An `SCUnitSummary` produced as the result.
  * @param[out] error   `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
  *                     `SCUNIT_ERROR_OPENING_STREAM_FAILED`, `SCUNIT_ERROR_READING_STREAM_FAILED`,
