@@ -75,7 +75,7 @@ typedef struct SCUnitSummary {
  */
 #define SCUNIT_SUITE(name)                                                                  \
     static SCUnitSuite* scunit_suite##name;                                                 \
-    [[gnu::constructor(101)]]                                                               \
+    [[gnu::constructor(102)]]                                                               \
     static void scunit_registerSuite##name() {                                              \
         SCUnitError error;                                                                  \
         scunit_suite##name = scunit_suite_new(#name, &error);                               \
@@ -124,7 +124,7 @@ typedef struct SCUnitSummary {
  */
 #define SCUNIT_PARTIAL_SUITE(name)                                                          \
     SCUnitSuite* scunit_suite##name;                                                        \
-    [[gnu::constructor(101)]]                                                               \
+    [[gnu::constructor(102)]]                                                               \
     static void scunit_registerSuite##name() {                                              \
         SCUnitError error;                                                                  \
         scunit_suite##name = scunit_suite_new(#name, &error);                               \
@@ -180,7 +180,7 @@ typedef struct SCUnitSummary {
 */
 #define SCUNIT_SUITE_BEFORE_ALL(name)                                                   \
     static void scunit_suite##name##SuiteSetup();                                       \
-    [[gnu::constructor(102)]]                                                           \
+    [[gnu::constructor(103)]]                                                           \
     static void scunit_setSuite##name##SuiteSetup() {                                   \
         scunit_suite_setSuiteSetup(scunit_suite##name, scunit_suite##name##SuiteSetup); \
     }                                                                                   \
@@ -198,7 +198,7 @@ typedef struct SCUnitSummary {
  */
 #define SCUNIT_SUITE_AFTER_ALL(name)                                                          \
     static void scunit_suite##name##SuiteTeardown();                                          \
-    [[gnu::constructor(102)]]                                                                 \
+    [[gnu::constructor(103)]]                                                                 \
     static void scunit_setSuite##name##SuiteTeardown() {                                      \
         scunit_suite_setSuiteTeardown(scunit_suite##name, scunit_suite##name##SuiteTeardown); \
     }                                                                                         \
@@ -216,7 +216,7 @@ typedef struct SCUnitSummary {
  */
 #define SCUNIT_SUITE_BEFORE_EACH(name)                                                \
     static void scunit_suite##name##TestSetup();                                      \
-    [[gnu::constructor(102)]]                                                         \
+    [[gnu::constructor(103)]]                                                         \
     static void scunit_setSuite##name##TestSetup() {                                  \
         scunit_suite_setTestSetup(scunit_suite##name, scunit_suite##name##TestSetup); \
     }                                                                                 \
@@ -234,7 +234,7 @@ typedef struct SCUnitSummary {
  */
 #define SCUNIT_SUITE_AFTER_EACH(name)                                                       \
     static void scunit_suite##name##TestTeardown();                                         \
-    [[gnu::constructor(102)]]                                                               \
+    [[gnu::constructor(103)]]                                                               \
     static void scunit_setSuite##name##TestTeardown() {                                     \
         scunit_suite_setTestTeardown(scunit_suite##name, scunit_suite##name##TestTeardown); \
     }                                                                                       \
@@ -394,7 +394,7 @@ void scunit_suite_registerTest(
  *                     `SCUNIT_ERROR_UNKNOWN_RESULT` if an unknown test result is encountered (a
  *                     sign of a serious programming error) and `SCUNIT_ERROR_NONE` otherwise.
  */
-void scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitError* error);
+void scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitError* error);
 
 /**
  * @brief Deallocates a given `SCUnitSuite`.

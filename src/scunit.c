@@ -11,6 +11,9 @@ typedef struct SCUnitConfig {
     /** @brief Current state of the colored output. */
     SCUnitColoredOutput coloredOutput;
 
+    /** @brief Current order in which suites and tests are executed. */
+    SCUnitOrder order;
+
 } SCUnitConfig;
 
 /** @brief Represents a long command line option. */
@@ -38,16 +41,19 @@ static const SCUnitLongOption LONG_OPTIONS[] = {
     { "help", no_argument, nullptr, 'h' },
     { "version", no_argument, nullptr, 'v' },
     { "color", required_argument, nullptr, 0 },
+    { "order", required_argument, nullptr, 0 },
+    { "seed", required_argument, nullptr, 0 },
     { nullptr, no_argument, nullptr, 0 }
 };
 
 /** @brief SCUnit configuration settings. */
 static SCUnitConfig config = {
-    .coloredOutput = SCUNIT_COLORED_OUTPUT_ALWAYS
+    .coloredOutput = SCUNIT_COLORED_OUTPUT_ALWAYS,
+    .order = SCUNIT_ORDER_SEQUENTIAL
 };
 
 /**
- * @brief Suites registered to be run automatically by SCUnit.
+ * @brief Suites registered to be executed automatically by SCUnit.
  *
  * @note This is a dynamically resized array with storage for `capacity` elements and
  * `registeredSuites` registered suites, except if `capacity` is zero, in which case it is initially
@@ -60,6 +66,31 @@ static int64_t capacity;
 
 /** @brief Number of registered suites. */
 static int64_t registeredSuites;
+
+/** @brief Single pseudorandom number generator (PRNG) used by SCUnit. */
+SCUnitRandom* random;
+
+/**
+ * @brief Initializes SCUnit.
+ *
+ * @attention If any unexpected error occurs, an error message is printed to `stderr` and the
+ * program exits using `EXIT_FAILURE`.
+ */
+[[gnu::constructor(101)]]
+static void init() {
+    SCUnitError error;
+    random = scunit_random_new(&error);
+    if (error != SCUNIT_ERROR_NONE) {
+        scunit_fprintfc(
+            stderr,
+            SCUNIT_COLOR_DARK_RED,
+            SCUNIT_COLOR_DARK_DEFAULT,
+            "An unexpected error occurred while initializing SCUnit (code %d).\n",
+            error
+        );
+        exit(EXIT_FAILURE);
+    }
+}
 
 SCUnitVersion scunit_getVersion() {
     return VERSION;
@@ -79,6 +110,19 @@ void scunit_setColoredOutput(SCUnitColoredOutput coloredOutput, SCUnitError* err
     *error = SCUNIT_ERROR_NONE;
 }
 
+SCUnitOrder scunit_getOrder() {
+    return config.order;
+}
+
+void scunit_setOrder(SCUnitOrder order, SCUnitError* error) {
+    if ((order < SCUNIT_ORDER_SEQUENTIAL) || (order > SCUNIT_ORDER_RANDOM)) {
+        *error = SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
+        return;
+    }
+    config.order = order;
+    *error = SCUNIT_ERROR_NONE;
+}
+
 void scunit_registerSuite(SCUnitSuite* suite, SCUnitError* error) {
     if (registeredSuites >= capacity) {
         int64_t newCapacity = (capacity == 0) ? 1 : capacity * GROWTH_FACTOR;
@@ -94,19 +138,7 @@ void scunit_registerSuite(SCUnitSuite* suite, SCUnitError* error) {
     *error = SCUNIT_ERROR_NONE;
 }
 
-/**
- * @brief Parses the command line arguments passed to the test executable.
- *
- * @attention If any unexpected error occurs, an error message is printed to `stderr` and the
- * program exits using `EXIT_FAILURE`.
- *
- * Note that the program immediately exits with `EXIT_SUCCESS` if the help (`-h` or `--help`) or
- * version (`-v` or `--version`) option is present in `argv`.
- *
- * @param[in] argc Number of command line arguments passed to the test executable.
- * @param[in] argv Command line arguments passed to the test executable.
- */
-static void scunit_parseArguments(int argc, char** argv) {
+void scunit_parseArguments(int argc, char** argv) {
     // Disable error messages of `getopt_long()`.
     opterr = 0;
     int option;
@@ -118,9 +150,16 @@ static void scunit_parseArguments(int argc, char** argv) {
                     "Usage: %s [OPTION]...\n"
                     "\n"
                     "Options:\n"
-                    "  -h, --help               Display this help and exit.\n"
-                    "  -v, --version            Display version information and exit.\n"
-                    "  --color[=]{never|always} Colorize the output (default = always).\n",
+                    "  -h, --help                   Display this help and exit.\n"
+                    "  -v, --version                Display version information and exit.\n"
+                    "  --color={never|always}       Colorize the output (default = always).\n"
+                    "  --order={sequential|random}  Execute suites and tests in a different order "
+                    "(default = sequential).\n"
+                    "  --seed=<seed>                Use a specific seed to reproduce a run.\n"
+                    "                               Parsed as a uint64_t in octal, hexadecimal or "
+                    "decimal notation.\n"
+                    "                               Only has an effect if '--order=random' is "
+                    "specified.\n",
                     argv[0]
                 );
                 exit(EXIT_SUCCESS);
@@ -151,6 +190,40 @@ static void scunit_parseArguments(int argc, char** argv) {
                         );
                         exit(EXIT_FAILURE);
                     }
+                }
+                else if (strcmp(optionName, "order") == 0) {
+                    if (strcmp(optarg, "sequential") == 0) {
+                        config.order = SCUNIT_ORDER_SEQUENTIAL;
+                    }
+                    else if (strcmp(optarg, "random") == 0) {
+                        config.order = SCUNIT_ORDER_RANDOM;
+                    }
+                    else {
+                        scunit_fprintf(
+                            stderr,
+                            "Invalid argument '%s' for option '--%s'.\n"
+                            "Try option '-h' or '--help' for more information.\n",
+                            optarg,
+                            optionName
+                        );
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                else if (strcmp(optionName, "seed") == 0) {
+                    char* end = nullptr;
+                    errno = 0;
+                    uint64_t seed = strtoull(optarg, &end, 0);
+                    if ((*optarg == '\0') || (*end != '\0') || (errno == ERANGE)) {
+                        scunit_fprintf(
+                            stderr,
+                            "Invalid argument '%s' for option '--%s'.\n"
+                            "Try option '-h' or '--help' for more information.\n",
+                            optarg,
+                            optionName
+                        );
+                        exit(EXIT_FAILURE);
+                    }
+                    scunit_random_setSeed(random, seed);
                 }
                 break;
             case 1:
@@ -187,15 +260,43 @@ static void scunit_parseArguments(int argc, char** argv) {
     }
 }
 
-/**
- * @brief Runs all registered suites.
- *
- * @attention If any unexpected error occurs, an error message is printed to `stderr` and the
- * program exits using `EXIT_FAILURE`.
- *
- * @return `EXIT_SUCCESS` if all tests passed, otherwise `EXIT_FAILURE`.
- */
-static int scunit_runSuites() {
+int scunit_executeSuites() {
+    int exitCode = EXIT_SUCCESS;
+    // Suites can be executed in a sequential or random order. This means that we may need to
+    // shuffle the indices of the suites. If no suites are registered, `suiteIndices` is a `nullptr`
+    // since allocating an array of size zero results in implementation-defined behavior (which we
+    // try to avoid).
+    int64_t* suiteIndices = nullptr;
+    if (registeredSuites > 0) {
+        suiteIndices = SCUNIT_MALLOC(registeredSuites * sizeof(int64_t));
+        if (suiteIndices == nullptr) {
+            scunit_fprintfc(
+                stderr,
+                SCUNIT_COLOR_DARK_RED,
+                SCUNIT_COLOR_DARK_DEFAULT,
+                "An unexpected error occurred while preparing the execution of the suites "
+                "(code %d).\n",
+                SCUNIT_ERROR_OUT_OF_MEMORY
+            );
+            exitCode = EXIT_FAILURE;
+            goto suiteIndicesAllocationFailed;
+        }
+    }
+    // We initialize the indices of the suites in the order they were registered using
+    // `[[gnu::constructor]]`, which is apparently in reversed order.
+    for (int64_t i = 0; i < registeredSuites; i++) {
+        suiteIndices[i] = registeredSuites - 1 - i;
+    }
+    if (config.order == SCUNIT_ORDER_RANDOM) {
+        for (int64_t i = registeredSuites - 1; i > 0; i--) {
+            int64_t j = scunit_random_int64(random, 0, i);
+            int64_t temp = suiteIndices[i];
+            suiteIndices[i] = suiteIndices[j];
+            suiteIndices[j] = temp;
+        }
+    }
+    int64_t failedSuites = 0;
+    SCUnitSummary summary = { };
     SCUnitError error;
     SCUnitTimer* timer = scunit_timer_new(&error);
     if (error != SCUNIT_ERROR_NONE) {
@@ -203,10 +304,12 @@ static int scunit_runSuites() {
             stderr,
             SCUNIT_COLOR_DARK_RED,
             SCUNIT_COLOR_DARK_DEFAULT,
-            "An unexpected error occurred while running the suites (code %d).\n",
+            "An unexpected error occurred while preparing the execution of the suites "
+            "(code %d).\n",
             error
         );
-        exit(EXIT_FAILURE);
+        exitCode = EXIT_FAILURE;
+        goto timerAllocationFailed;
     }
     scunit_timer_start(timer, &error);
     if (error != SCUNIT_ERROR_NONE) {
@@ -214,30 +317,27 @@ static int scunit_runSuites() {
             stderr,
             SCUNIT_COLOR_DARK_RED,
             SCUNIT_COLOR_DARK_DEFAULT,
-            "An unexpected error occurred while running the suites (code %d).\n",
+            "An unexpected error occurred while executing the suites (code %d).\n",
             error
         );
-        exit(EXIT_FAILURE);
+        exitCode = EXIT_FAILURE;
+        goto failed;
     }
-    int64_t failedSuites = 0;
-    SCUnitSummary summary = { };
     for (int64_t i = 0; i < registeredSuites; i++) {
+        const SCUnitSuite* suite = suites[suiteIndices[i]];
         SCUnitSummary suiteSummary;
-        // Run suites in the order they are originally defined in, which is apparently reversed in
-        // relation to how they are registered using `[[gnu::constructor]]`. Note that SCUnit does
-        // not guarantee the order in which tests or suites are run anywhere, so we are free to
-        // implement this however we want.
-        scunit_suite_run(suites[registeredSuites - 1 - i], &suiteSummary, &error);
+        scunit_suite_execute(suite, &suiteSummary, &error);
         if (error != SCUNIT_ERROR_NONE) {
             scunit_fprintfc(
                 stderr,
                 SCUNIT_COLOR_DARK_RED,
                 SCUNIT_COLOR_DARK_DEFAULT,
-                "An unexpected error occurred while running the suite %s (code %d).\n",
-                scunit_suite_getName(suites[registeredSuites - 1 - i]),
+                "An unexpected error occurred while executing the suite %s (code %d).\n",
+                scunit_suite_getName(suite),
                 error
             );
-            exit(EXIT_FAILURE);
+            exitCode = EXIT_FAILURE;
+            goto failed;
         }
         if (suiteSummary.failedTests > 0) {
             failedSuites++;
@@ -252,14 +352,12 @@ static int scunit_runSuites() {
             stderr,
             SCUNIT_COLOR_DARK_RED,
             SCUNIT_COLOR_DARK_DEFAULT,
-            "An unexpected error occurred while running the suites (code %d).\n",
+            "An unexpected error occurred while executing the suites (code %d).\n",
             error
         );
-        exit(EXIT_FAILURE);
+        exitCode = EXIT_FAILURE;
+        goto failed;
     }
-    SCUnitMeasurement wallTimeMeasurement = scunit_timer_getWallTime(timer, &error);
-    SCUnitMeasurement cpuTimeMeasurement = scunit_timer_getCPUTime(timer, &error);
-    scunit_timer_free(timer);
     scunit_printf("--- ");
     scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "Summary");
     scunit_printf(" ---\n\nSuites: ");
@@ -334,6 +432,8 @@ static int scunit_runSuites() {
         "%.2F%%",
         (totalTests > 0) ? (((double) summary.failedTests) / totalTests) * 100.0 : 0.0
     );
+    SCUnitMeasurement wallTimeMeasurement = scunit_timer_getWallTime(timer, &error);
+    SCUnitMeasurement cpuTimeMeasurement = scunit_timer_getCPUTime(timer, &error);
     scunit_printf(
         "), %" PRId64 " Total\nWall: %.3F %s, CPU: %.3F %s\n",
         totalTests,
@@ -342,23 +442,30 @@ static int scunit_runSuites() {
         cpuTimeMeasurement.time,
         cpuTimeMeasurement.timeUnitString
     );
+    if (config.order == SCUNIT_ORDER_RANDOM) {
+        scunit_printf(
+            "\nNote: Suites and tests were executed in a random order.\n"
+            "Specify '--seed=%" PRIu64 "' if you want to reproduce this run.\n",
+            scunit_random_getSeed(random)
+        );
+    }
+failed:
+    scunit_timer_free(timer);
+timerAllocationFailed:
+    SCUNIT_FREE(suiteIndices);
+suiteIndicesAllocationFailed:
+    if (exitCode != EXIT_SUCCESS) {
+        exit(exitCode);
+    }
     return (summary.failedTests > 0) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
-/** @brief Deallocates all registered suites. */
-static inline void scunit_freeSuites() {
+/** @brief Deinitializes SCUnit. */
+[[gnu::destructor(101)]]
+static void deinit() {
     for (int64_t i = 0; i < registeredSuites; i++) {
         scunit_suite_free(suites[i]);
     }
     SCUNIT_FREE(suites);
-    suites = nullptr;
-    capacity = 0;
-    registeredSuites = 0;
-}
-
-int scunit_main(int argc, char** argv) {
-    scunit_parseArguments(argc, argv);
-    int exitCode = scunit_runSuites();
-    scunit_freeSuites();
-    return exitCode;
+    scunit_random_free(random);
 }

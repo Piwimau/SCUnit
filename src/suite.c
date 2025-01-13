@@ -2,6 +2,8 @@
 #include <string.h>
 #include <SCUnit/memory.h>
 #include <SCUnit/print.h>
+#include <SCUnit/random.h>
+#include <SCUnit/scunit.h>
 #include <SCUnit/suite.h>
 #include <SCUnit/timer.h>
 
@@ -84,6 +86,8 @@ struct SCUnitSuite {
 /** @brief Growth factor used for resizing the array of tests. */
 static constexpr int64_t GROWTH_FACTOR = 2;
 
+extern SCUnitRandom* random;
+
 SCUnitSuite* scunit_suite_new(const char* name, SCUnitError* error) {
     SCUnitSuite* suite = SCUNIT_MALLOC(sizeof(SCUnitSuite));
     if (suite == nullptr) {
@@ -149,11 +153,32 @@ void scunit_suite_registerTest(
     *error = SCUNIT_ERROR_NONE;
 }
 
-void scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitError* error) {
-    *summary = (SCUnitSummary) { };
-    scunit_printf("--- Suite ");
-    scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "%s", suite->name);
-    scunit_printf(" ---\n\n");
+void scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitError* error) {
+    // Tests can be executed in a sequential or random order. This means that we may need to shuffle
+    // the indices of the tests. If no tests are registered, `testIndices` is a `nullptr` since
+    // allocating an array of size zero results in implementation-defined behavior (which we try to
+    // avoid).
+    int64_t* testIndices = nullptr;
+    if (suite->registeredTests > 0) {
+        testIndices = SCUNIT_MALLOC(suite->registeredTests * sizeof(int64_t));
+        if (testIndices == nullptr) {
+            *error = SCUNIT_ERROR_OUT_OF_MEMORY;
+            goto testIndicesAllocationFailed;
+        }
+    }
+    // We initialize the indices of the tests in the order they were registered using
+    // `[[gnu::constructor]]`, which is apparently in reversed order.
+    for (int64_t i = 0; i < suite->registeredTests; i++) {
+        testIndices[i] = suite->registeredTests - 1 - i;
+    }
+    if (scunit_getOrder() == SCUNIT_ORDER_RANDOM) {
+        for (int64_t i = suite->registeredTests - 1; i > 0; i--) {
+            int64_t j = scunit_random_int64(random, 0, i);
+            int64_t temp = testIndices[i];
+            testIndices[i] = testIndices[j];
+            testIndices[j] = temp;
+        }
+    }
     SCUnitTimer* suiteTimer = scunit_timer_new(error);
     if (*error != SCUNIT_ERROR_NONE) {
         goto suiteTimerAllocationFailed;
@@ -166,6 +191,10 @@ void scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitEr
     if (*error != SCUNIT_ERROR_NONE) {
         goto contextAllocationFailed;
     }
+    scunit_printf("--- Suite ");
+    scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "%s", suite->name);
+    scunit_printf(" ---\n\n");
+    *summary = (SCUnitSummary) { };
     scunit_timer_start(suiteTimer, error);
     if (*error != SCUNIT_ERROR_NONE) {
         goto failed;
@@ -177,12 +206,8 @@ void scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitEr
         if (suite->testSetup != nullptr) {
             suite->testSetup();
         }
-        // Run tests in the order they are originally defined in, which is apparently reversed in
-        // relation to how they are registered using `[[gnu::constructor]]`. Note that SCUnit does
-        // not guarantee the order in which tests or suites are run anywhere, so we are free to
-        // implement this however we want.
-        const SCUnitTest* test = &suite->tests[suite->registeredTests - 1 - i];
-        scunit_printf("(%" PRId64 "/%" PRId64 ") Running test ", i + 1, suite->registeredTests);
+        const SCUnitTest* test = &suite->tests[testIndices[i]];
+        scunit_printf("(%" PRId64 "/%" PRId64 ") Executing test ", i + 1, suite->registeredTests);
         scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "%s", test->name);
         scunit_printf("... ");
         // Reuse the context for every test to avoid some unnecessary memory allocations.
@@ -252,11 +277,8 @@ void scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitEr
     if (*error != SCUNIT_ERROR_NONE) {
         goto failed;
     }
-    scunit_timer_free(testTimer);
-    scunit_context_free(context);
     SCUnitMeasurement wallTimeMeasurement = scunit_timer_getWallTime(suiteTimer, error);
     SCUnitMeasurement cpuTimeMeasurement = scunit_timer_getCPUTime(suiteTimer, error);
-    scunit_timer_free(suiteTimer);
     scunit_printf("Tests: ");
     scunit_printfc(
         (summary->passedTests > 0) ? SCUNIT_COLOR_DARK_GREEN : SCUNIT_COLOR_DARK_DEFAULT,
@@ -314,14 +336,15 @@ void scunit_suite_run(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitEr
         cpuTimeMeasurement.timeUnitString
     );
     *error = SCUNIT_ERROR_NONE;
-    return;
 failed:
-contextAllocationFailed:
     scunit_context_free(context);
-testTimerAllocationFailed:
+contextAllocationFailed:
     scunit_timer_free(testTimer);
-suiteTimerAllocationFailed:
+testTimerAllocationFailed:
     scunit_timer_free(suiteTimer);
+suiteTimerAllocationFailed:
+    SCUNIT_FREE(testIndices);
+testIndicesAllocationFailed:
 }
 
 void scunit_suite_free(SCUnitSuite* suite) {

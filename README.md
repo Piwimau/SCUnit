@@ -30,7 +30,8 @@ SCUNIT_TEST(ExampleSuite, ExampleTest) {
 }
 
 int main(int argc, char** argv) {
-    return scunit_main(argc, argv);
+    scunit_parseArguments(argc, argv);
+    return scunit_executeSuites();
 }
 ```
 
@@ -58,6 +59,8 @@ if you want to dive deeper and take full advantage of SCUnit:
 * Ability to replace the functions for dynamic memory management (e. g. for debugging purposes).
 * A utility module for printing formatted and optionally colored strings to streams and buffers.
 * A simple timer for measuring the elapsed wall or CPU time required to execute a block of code.
+* A pseudorandom number generator (PRNG) based on the [xoshiro256**](https://prng.di.unimi.it/)
+  variant.
 
 ## How do you build SCUnit?
 

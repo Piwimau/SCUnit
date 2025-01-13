@@ -7,6 +7,7 @@
 #include <SCUnit/error.h>
 #include <SCUnit/memory.h>
 #include <SCUnit/print.h>
+#include <SCUnit/random.h>
 #include <SCUnit/suite.h>
 #include <SCUnit/timer.h>
 
@@ -36,6 +37,20 @@ typedef enum SCUnitColoredOutput {
 } SCUnitColoredOutput;
 
 /**
+ * @brief Represents an enumeration of the different orders in which suites and tests can be
+ * executed.
+ */
+typedef enum SCUnitOrder {
+
+    /** @brief Indicates that suites and tests are executed in a sequential order. */
+    SCUNIT_ORDER_SEQUENTIAL,
+
+    /** @brief Indicates that suites and tests are executed in a random order. */
+    SCUNIT_ORDER_RANDOM
+
+} SCUnitOrder;
+
+/**
  * @brief Retrieves the version information of SCUnit.
  *
  * @return An `SCUnitVersion` containing the major, minor and patch version number of SCUnit.
@@ -63,14 +78,32 @@ SCUnitColoredOutput scunit_getColoredOutput();
 void scunit_setColoredOutput(SCUnitColoredOutput coloredOutput, SCUnitError* error);
 
 /**
- * @brief Registers an `SCUnitSuite` to be run automatically by SCUnit.
+ * @brief Gets the current order in which suites and tests are executed.
+ *
+ * @note Suites and tests are executed in a sequential order by default (set to
+ * `SCUNIT_ORDER_SEQUENTIAL`).
+ *
+ * @return The current order in which suites and tests are executed.
+ */
+SCUnitOrder scunit_getOrder();
+
+/**
+ * @brief Sets the order in which suites and tests are executed.
+ *
+ * @param[in]  order `SCUnitOrder` to set.
+ * @param[out] error `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `order` is not a valid `SCUnitOrder`,
+ *                   otherwise `SCUNIT_ERROR_NONE`.
+ */
+void scunit_setOrder(SCUnitOrder order, SCUnitError* error);
+
+/**
+ * @brief Registers an `SCUnitSuite` to be executed automatically by SCUnit.
  *
  * @note Modifying the suite (i. e. registering setup, teardown or test functions) after it has been
  * registered is allowed.
  *
- * @warning SCUnit takes ownership of the given `SCUnitSuite` and is responsible for deallocating
- * it at the end of `scunit_main()`. You must not deallocate it manually yourself. Do not forget to
- * call `scunit_main()`, otherwise memory leaks will be the consequence.
+ * @warning SCUnit takes ownership of the given `SCUnitSuite` and is responsible for the
+ * deallocation. You must not deallocate it manually yourself.
  *
  * @param[in]  suite `SCUnitSuite` to register.
  * @param[out] error `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
@@ -79,33 +112,38 @@ void scunit_setColoredOutput(SCUnitColoredOutput coloredOutput, SCUnitError* err
 void scunit_registerSuite(SCUnitSuite* suite, SCUnitError* error);
 
 /**
- * @brief Main function of SCUnit.
+ * @brief Parses the command line arguments passed to the test executable.
  *
- * @details This function does three things:
+ * @note This function produces diagnostic output on `stdout` and `stderr`, such as the usage or
+ * error messages in case an unexpected error occurs while parsing the command line arguments.
  *
- * * First, it parses any command line arguments passed to the test executable and sets up SCUnit
- *   accordingly. Run the test executable with the `-h` or `--help` option to get a list of all
- *   supported options.
- *
- * * It then executes all suites (and their tests) registered either automatically with the
- *   `SCUNIT_SUITE()` and `SCUNIT_PARTIAL_SUITE()` macros or manually by a call to
- *   `scunit_registerSuite()`.
- *
- * * Finally, it deallocates all registered suites.
- *
- * @note It does not make sense to call this function twice, as SCUnit deallocates all suites after
- * running them.
- *
- * @attention If any unexpected error occurs, an error message is printed to `stderr` and the
- * program exits using `EXIT_FAILURE`.
+ * It respects the current colored output state set by calling `scunit_setColoredOutput()`.
+ * If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, the default color is used instead.
  *
  * Note that the program immediately exits with `EXIT_SUCCESS` if the help (`-h` or `--help`) or
- * version (`-v` or `--version`) option is present in `argv`.
+ * version (`-v` or `--version`) option is present in `argv` or with `EXIT_FAILURE` if any
+ * unexpected error occurs while parsing the command line arguments.
  *
  * @param[in] argc Number of command line arguments passed to the test executable.
  * @param[in] argv Command line arguments passed to the test executable.
- * @return `EXIT_SUCCESS` if all tests passed, otherwise `EXIT_FAILURE`.
  */
-int scunit_main(int argc, char** argv);
+void scunit_parseArguments(int argc, char** argv);
+
+/**
+ * @brief Executes all registered suites (and their tests).
+ *
+ * @note This function produces diagnostic output on `stdout` and `stderr`, such as the names of
+ * suites and tests, results, time measurements, detailed error messages whenever an assertion fails
+ * and a summary at the end.
+ *
+ * It respects the current colored output state set by calling `scunit_setColoredOutput()`.
+ * If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, the default color is used instead.
+ *
+ * Note that the program immediately exits with `EXIT_FAILURE` if any unexpected error occurs while
+ * executing the registered suites.
+ *
+ * @return `EXIT_FAILURE` if at least one test failed, otherwise `EXIT_SUCCESS`.
+ */
+int scunit_executeSuites();
 
 #endif
