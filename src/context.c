@@ -275,15 +275,12 @@ void scunit_context_appendFileContext(
             goto failed;
         }
     }
-    if (fclose(file) == EOF) {
+failed:
+    SCUNIT_FREE(buffer);
+    // Note that closing the file might fail, but we only care about an error that occurred first.
+    if ((fclose(file) == EOF) && (*error == SCUNIT_ERROR_NONE)) {
         *error = SCUNIT_ERROR_CLOSING_STREAM_FAILED;
     }
-    SCUNIT_FREE(buffer);
-    return;
-failed:
-    // Note that closing the file might fail, but we only care about the error that occurred first.
-    fclose(file);
-    SCUNIT_FREE(buffer);
 }
 
 void scunit_context_free(SCUnitContext* context) {
