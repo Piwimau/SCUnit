@@ -90,10 +90,10 @@ SCUnitError scunit_context_setMessage(SCUnitContext* context, const char* format
 /**
  * @brief Overwrites the message of a given `SCUnitContext` with a formatted and colored string.
  *
- * @note This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
- * `foreground` and `background` are ignored and the default terminal color is used instead.
- * See `<SCUnit/print.h>` for more information.
+ * @note This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, `foreground` and
+ * `background` are ignored and the default color is used instead. See `<SCUnit/scunit.h>` for more
+ * information.
  *
  * @param[in, out] context    `SCUnitContext` to overwrite the message of.
  * @param[in]      foreground An `SCUnitColor` to use as the foreground color.
@@ -132,10 +132,10 @@ SCUnitError scunit_context_appendMessage(SCUnitContext* context, const char* for
 /**
  * @brief Appends a formatted and colored string to the message of a given `SCUnitContext`.
  *
- * @note This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
- * `foreground` and `background` are ignored and the default terminal color is used instead.
- * See `<SCUnit/print.h>` for more information.
+ * @note This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, `foreground` and
+ * `background` are ignored and the default color is used instead. See `<SCUnit/scunit.h>` for more
+ * information.
  *
  * @param[in, out] context    `SCUnitContext` to append to.
  * @param[in]      foreground An `SCUnitColor` to use as the foreground color.
@@ -160,10 +160,9 @@ SCUnitError scunit_context_appendColoredMessage(
 /**
  * @brief Appends the file context around a line to the message of a given `SCUnitContext`.
  *
- * @note This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
- * `foreground` and `background` are ignored and the default terminal color is used instead.
- * See `<SCUnit/print.h>` for more information.
+ * @note This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, the default color
+ * is used instead. See `<SCUnit/scunit.h>` for more information.
  *
  * @warning This function assumes that the file content is UTF-8 encoded and processes the input
  * accordingly. If the input contains invalid UTF-8 sequences, the behavior is undefined.

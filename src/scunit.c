@@ -5,6 +5,14 @@
 #include <string.h>
 #include <SCUnit/scunit.h>
 
+/** @brief Represents a structure containing the configuration settings of SCUnit. */
+typedef struct SCUnitConfig {
+
+    /** @brief Current state of the colored output. */
+    SCUnitColoredOutput coloredOutput;
+
+} SCUnitConfig;
+
 /** @brief Represents a long command line option. */
 typedef struct option SCUnitLongOption;
 
@@ -29,8 +37,13 @@ static const char* const SHORT_OPTIONS = "-:hv";
 static const SCUnitLongOption LONG_OPTIONS[] = {
     { "help", no_argument, nullptr, 'h' },
     { "version", no_argument, nullptr, 'v' },
-    { "colored-output", required_argument, nullptr, 0 },
+    { "color", required_argument, nullptr, 0 },
     { nullptr, no_argument, nullptr, 0 }
+};
+
+/** @brief SCUnit configuration settings. */
+static SCUnitConfig config = {
+    .coloredOutput = SCUNIT_COLORED_OUTPUT_ALWAYS
 };
 
 /**
@@ -50,6 +63,20 @@ static int64_t registeredSuites;
 
 SCUnitVersion scunit_getVersion() {
     return VERSION;
+}
+
+SCUnitColoredOutput scunit_getColoredOutput() {
+    return config.coloredOutput;
+}
+
+void scunit_setColoredOutput(SCUnitColoredOutput coloredOutput, SCUnitError* error) {
+    if ((coloredOutput < SCUNIT_COLORED_OUTPUT_NEVER)
+            || (coloredOutput > SCUNIT_COLORED_OUTPUT_ALWAYS)) {
+        *error = SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
+        return;
+    }
+    config.coloredOutput = coloredOutput;
+    *error = SCUNIT_ERROR_NONE;
 }
 
 void scunit_registerSuite(SCUnitSuite* suite, SCUnitError* error) {
@@ -91,10 +118,9 @@ static void scunit_parseArguments(int argc, char** argv) {
                     "Usage: %s [OPTION]...\n"
                     "\n"
                     "Options:\n"
-                    "  -h, --help                           Display this help and exit.\n"
-                    "  -v, --version                        Display version information and exit.\n"
-                    "  --colored-output={disabled|enabled}  Enable or disable colored output "
-                    "(default = enabled).\n",
+                    "  -h, --help               Display this help and exit.\n"
+                    "  -v, --version            Display version information and exit.\n"
+                    "  --color[=]{never|always} Colorize the output (default = always).\n",
                     argv[0]
                 );
                 exit(EXIT_SUCCESS);
@@ -108,23 +134,23 @@ static void scunit_parseArguments(int argc, char** argv) {
                 exit(EXIT_SUCCESS);
             case 0:
                 const char* optionName = LONG_OPTIONS[optionIndex].name;
-                if (strcmp(optarg, "disabled") == 0) {
-                    SCUnitError error;
-                    scunit_setColoredOutput(SCUNIT_COLORED_OUTPUT_DISABLED, &error);
-                }
-                else if (strcmp(optarg, "enabled") == 0) {
-                    SCUnitError error;
-                    scunit_setColoredOutput(SCUNIT_COLORED_OUTPUT_ENABLED, &error);
-                }
-                else {
-                    scunit_fprintf(
-                        stderr,
-                        "Invalid argument '%s' for option '--%s'.\n"
-                        "Try option '-h' or '--help' for more information.\n",
-                        optarg,
-                        optionName
-                    );
-                    exit(EXIT_FAILURE);
+                if (strcmp(optionName, "color") == 0) {
+                    if (strcmp(optarg, "never") == 0) {
+                        config.coloredOutput = SCUNIT_COLORED_OUTPUT_NEVER;
+                    }
+                    else if (strcmp(optarg, "always") == 0) {
+                        config.coloredOutput = SCUNIT_COLORED_OUTPUT_ALWAYS;
+                    }
+                    else {
+                        scunit_fprintf(
+                            stderr,
+                            "Invalid argument '%s' for option '--%s'.\n"
+                            "Try option '-h' or '--help' for more information.\n",
+                            optarg,
+                            optionName
+                        );
+                        exit(EXIT_FAILURE);
+                    }
                 }
                 break;
             case 1:

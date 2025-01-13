@@ -6,17 +6,6 @@
 #include <stdio.h>
 #include <SCUnit/error.h>
 
-/** @brief Represents an enumeration of the states the colored output may be in. */
-typedef enum SCUnitColoredOutput {
-
-    /** @brief Indicates that the colored output is currently disabled. */
-    SCUNIT_COLORED_OUTPUT_DISABLED,
-
-    /** @brief Indicates that the colored output is currently enabled. */
-    SCUNIT_COLORED_OUTPUT_ENABLED
-
-} SCUnitColoredOutput;
-
 /** @brief Represents a color that may be used as the fore- or background for printing. */
 typedef enum SCUnitColor {
 
@@ -77,27 +66,6 @@ typedef enum SCUnitColor {
 } SCUnitColor;
 
 /**
- * @brief Gets the current `SCUnitColoredOutput` state.
- *
- * @note The colored output is set to `SCUNIT_COLORED_OUTPUT_ENABLED` by default.
- *
- * @return `SCUNIT_COLORED_OUTPUT_DISABLED` if the colored output is currently disabled,
- * otherwise `SCUNIT_COLORED_OUTPUT_ENABLED`.
- */
-SCUnitColoredOutput scunit_getColoredOutput();
-
-/**
- * @brief Sets the current `SCUnitColoredOutput` state.
- *
- * @note The colored output is set to `SCUNIT_COLORED_OUTPUT_ENABLED` by default.
- *
- * @param[in]  coloredOutput `SCUnitColoredOutput` to set the current state to.
- * @param[out] error         `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `coloredOutput` is not a valid
- *                           `SCUnitColoredOutput`, otherwise `SCUNIT_ERROR_NONE`.
- */
-void scunit_setColoredOutput(SCUnitColoredOutput coloredOutput, SCUnitError* error);
-
-/**
  * @brief Writes a formatted string to the standard output stream.
  *
  * @param[in] format A null-terminated format string following the same conventions as the standard
@@ -127,9 +95,10 @@ SCUnitError scunit_vprintf(const char* format, va_list args);
 /**
  * @brief Writes a formatted and colored string to the standard output stream.
  *
- * @note This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
- * `foreground` and `background` are ignored and the default terminal color is used instead.
+ * @note This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, `foreground` and
+ * `background` are ignored and the default color is used instead. See `<SCUnit/scunit.h>` for more
+ * information.
  *
  * @param[in] foreground An `SCUnitColor` to use as the foreground color.
  * @param[in] background An `SCUnitColor` to use as the background color.
@@ -151,9 +120,10 @@ SCUnitError scunit_printfc(
 /**
  * @brief Writes a formatted and colored string to the standard output stream.
  *
- * @note This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
- * `foreground` and `background` are ignored and the default terminal color is used instead.
+ * @note This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, `foreground` and
+ * `background` are ignored and the default color is used instead. See `<SCUnit/scunit.h>` for more
+ * information.
  *
  * @attention This function does not explicitly call `va_end()` with the `args` parameter. Instead,
  * the caller is expected to do so in order to clean up any remaining resources.
@@ -207,9 +177,10 @@ SCUnitError scunit_vfprintf(FILE* stream, const char* format, va_list args);
 /**
  * @brief Writes a formatted and colored string to a given output stream.
  *
- * @note This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
- * `foreground` and `background` are ignored and the default terminal color is used instead.
+ * @note This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, `foreground` and
+ * `background` are ignored and the default color is used instead. See `<SCUnit/scunit.h>` for more
+ * information.
  *
  * @param[in, out] stream     Output stream to write the formatted string to.
  * @param[in]      foreground An `SCUnitColor` to use as the foreground color.
@@ -233,9 +204,10 @@ SCUnitError scunit_fprintfc(
 /**
  * @brief Writes a formatted and colored string to a given output stream.
  *
- * @note This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
- * `foreground` and `background` are ignored and the default terminal color is used instead.
+ * @note This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, `foreground` and
+ * `background` are ignored and the default color is used instead. See `<SCUnit/scunit.h>` for more
+ * information.
  *
  * @attention This function does not explicitly call `va_end()` with the `args` parameter. Instead,
  * the caller is expected to do so in order to clean up any remaining resources.
@@ -327,9 +299,10 @@ SCUnitError scunit_vrsnprintf(char** buffer, int64_t* size, const char* format, 
  * @note For convenience, `*buffer` is allowed to be `nullptr`, in which case `*size` must be equal
  * to zero (and vice versa). `*buffer` is then allocated to a certain initial size by this function.
  *
- * This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
- * `foreground` and `background` are ignored and the default terminal color is used instead.
+ * This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, `foreground` and
+ * `background` are ignored and the default color is used instead. See `<SCUnit/scunit.h>` for more
+ * information.
  *
  * @warning If an out-of-memory condition occurs or if writing to `*buffer` fails, both `*buffer`
  * and `*size` retain the original state they were in before the failed operation. Note however that
@@ -371,9 +344,10 @@ SCUnitError scunit_rsnprintfc(
  * @note For convenience, `*buffer` is allowed to be `nullptr`, in which case `*size` must be equal
  * to zero (and vice versa). `*buffer` is then allocated to a certain initial size by this function.
  *
- * This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
- * `foreground` and `background` are ignored and the default terminal color is used instead.
+ * This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, `foreground` and
+ * `background` are ignored and the default color is used instead. See `<SCUnit/scunit.h>` for more
+ * information.
  *
  * @attention This function does not explicitly call `va_end()` with the `args` parameter. Instead,
  * the caller is expected to do so in order to clean up any remaining resources.
@@ -479,9 +453,10 @@ SCUnitError scunit_vrasnprintf(char** buffer, int64_t* size, const char* format,
  * @note For convenience, `*buffer` is allowed to be `nullptr`, in which case `*size` must be equal
  * to zero (and vice versa). `*buffer` is then allocated to a certain initial size by this function.
  *
- * This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
- * `foreground` and `background` are ignored and the default terminal color is used instead.
+ * This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, `foreground` and
+ * `background` are ignored and the default color is used instead. See `<SCUnit/scunit.h>` for more
+ * information.
  *
  * @warning If an out-of-memory condition occurs or if appending to `*buffer` fails, both `*buffer`
  * and `*size` retain the original state they were in before the failed operation. Note however that
@@ -523,9 +498,10 @@ SCUnitError scunit_rasnprintfc(
  * @note For convenience, `*buffer` is allowed to be `nullptr`, in which case `*size` must be equal
  * to zero (and vice versa). `*buffer` is then allocated to a certain initial size by this function.
  *
- * This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`,
- * `foreground` and `background` are ignored and the default terminal color is used instead.
+ * This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, `foreground` and
+ * `background` are ignored and the default color is used instead. See `<SCUnit/scunit.h>` for more
+ * information.
  *
  * @attention This function does not explicitly call `va_end()` with the `args` parameter. Instead,
  * the caller is expected to do so in order to clean up any remaining resources.

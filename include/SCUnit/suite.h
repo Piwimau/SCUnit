@@ -379,9 +379,9 @@ void scunit_suite_registerTest(
  * names of suites and tests, results, time measurements, detailed error messages whenever an
  * assertion fails and a summary at the end.
  *
- * This function respects the current `SCUnitColoredOutput` state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_DISABLED`, the default
- * terminal color is used for the diagnostic output.
+ * This function respects the current colored output state set by calling
+ * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, the default color
+ * is used instead. See `<SCUnit/scunit.h>` for more information.
  *
  * @param[in]  suite   `SCUnitSuite` to run.
  * @param[out] summary An `SCUnitSummary` produced as the result.

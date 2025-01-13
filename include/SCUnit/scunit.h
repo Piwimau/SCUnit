@@ -24,12 +24,43 @@ typedef struct SCUnitVersion {
 
 } SCUnitVersion;
 
+/** @brief Represents an enumeration of the different states the colored output may be in. */
+typedef enum SCUnitColoredOutput {
+
+    /** @brief Indicates that colored output is never used. */
+    SCUNIT_COLORED_OUTPUT_NEVER,
+
+    /** @brief Indicates that colored output is always used. */
+    SCUNIT_COLORED_OUTPUT_ALWAYS
+
+} SCUnitColoredOutput;
+
 /**
  * @brief Retrieves the version information of SCUnit.
  *
  * @return An `SCUnitVersion` containing the major, minor and patch version number of SCUnit.
  */
 SCUnitVersion scunit_getVersion();
+
+/**
+ * @brief Gets the current state of the colored output.
+ *
+ * @note Colored output is always used by default (set to `SCUNIT_COLORED_OUTPUT_ALWAYS`).
+ *
+ * @return The current state of the colored output.
+ */
+SCUnitColoredOutput scunit_getColoredOutput();
+
+/**
+ * @brief Sets the state of the colored output.
+ *
+ * @note Colored output is always used by default (set to `SCUNIT_COLORED_OUTPUT_ALWAYS`).
+ *
+ * @param[in]  coloredOutput `SCUnitColoredOutput` state to set.
+ * @param[out] error         `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `coloredOutput` is not a valid
+ *                           `SCUnitColoredOutput`, otherwise `SCUNIT_ERROR_NONE`.
+ */
+void scunit_setColoredOutput(SCUnitColoredOutput coloredOutput, SCUnitError* error);
 
 /**
  * @brief Registers an `SCUnitSuite` to be run automatically by SCUnit.

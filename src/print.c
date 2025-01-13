@@ -2,6 +2,7 @@
 #include <string.h>
 #include <SCUnit/memory.h>
 #include <SCUnit/print.h>
+#include <SCUnit/scunit.h>
 
 /** @brief Size used for initially allocating a buffer. */
 static constexpr int64_t INITIAL_BUFFER_SIZE = 128;
@@ -59,26 +60,6 @@ static constexpr int32_t BACKGROUND_COLORS[SCUNIT_COLOR_BRIGHT_DEFAULT + 1] = {
     [SCUNIT_COLOR_BRIGHT_DEFAULT] = 109
 };
 
-/**
- * @brief Current state of the colored output that determines whether color is used when printing
- * formatted messages to streams and buffers.
- */
-static SCUnitColoredOutput currentColoredOutput = SCUNIT_COLORED_OUTPUT_ENABLED;
-
-SCUnitColoredOutput scunit_getColoredOutput() {
-    return currentColoredOutput;
-}
-
-void scunit_setColoredOutput(SCUnitColoredOutput coloredOutput, SCUnitError* error) {
-    if ((coloredOutput < SCUNIT_COLORED_OUTPUT_DISABLED)
-            || (coloredOutput > SCUNIT_COLORED_OUTPUT_ENABLED)) {
-        *error = SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
-        return;
-    }
-    currentColoredOutput = coloredOutput;
-    *error = SCUNIT_ERROR_NONE;
-}
-
 SCUnitError scunit_printf(const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -123,7 +104,8 @@ SCUnitError scunit_vprintfc(
     if (!isValidColor(foreground) || !isValidColor(background)) {
         return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
-    if (currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) {
+    SCUnitColoredOutput coloredOutput = scunit_getColoredOutput();
+    if (coloredOutput == SCUNIT_COLORED_OUTPUT_ALWAYS) {
         int result = printf(
             COLOR_START,
             FOREGROUND_COLORS[foreground],
@@ -136,7 +118,7 @@ SCUnitError scunit_vprintfc(
     if (vprintf(format, args) < 0) {
         return SCUNIT_ERROR_WRITING_STREAM_FAILED;
     }
-    if ((currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) && (printf(COLOR_RESET) < 0)) {
+    if ((coloredOutput == SCUNIT_COLORED_OUTPUT_ALWAYS) && (printf(COLOR_RESET) < 0)) {
         return SCUNIT_ERROR_WRITING_STREAM_FAILED;
     }
     return SCUNIT_ERROR_NONE;
@@ -180,7 +162,8 @@ SCUnitError scunit_vfprintfc(
     if (!isValidColor(foreground) || !isValidColor(background)) {
         return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
-    if (currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) {
+    SCUnitColoredOutput coloredOutput = scunit_getColoredOutput();
+    if (coloredOutput == SCUNIT_COLORED_OUTPUT_ALWAYS) {
         int result = fprintf(
             stream,
             COLOR_START,
@@ -194,8 +177,7 @@ SCUnitError scunit_vfprintfc(
     if (vfprintf(stream, format, args) < 0) {
         return SCUNIT_ERROR_WRITING_STREAM_FAILED;
     }
-    if ((currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED)
-            && (fprintf(stream, COLOR_RESET) < 0)) {
+    if ((coloredOutput == SCUNIT_COLORED_OUTPUT_ALWAYS) && (fprintf(stream, COLOR_RESET) < 0)) {
         return SCUNIT_ERROR_WRITING_STREAM_FAILED;
     }
     return SCUNIT_ERROR_NONE;
@@ -321,7 +303,8 @@ SCUnitError scunit_vrsnprintfc(
         (*buffer)[0] = '\0';
     }
     int64_t offset = 0;
-    if (currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) {
+    SCUnitColoredOutput coloredOutput = scunit_getColoredOutput();
+    if (coloredOutput == SCUNIT_COLORED_OUTPUT_ALWAYS) {
         int64_t length = snprintf(
             nullptr,
             0,
@@ -362,7 +345,7 @@ SCUnitError scunit_vrsnprintfc(
     if (vsnprintf(*buffer + offset, *size - offset, format, args) < 0) {
         return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
     }
-    if (currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) {
+    if (coloredOutput == SCUNIT_COLORED_OUTPUT_ALWAYS) {
         offset += length;
         ensureSize(buffer, size, offset + strlen(COLOR_RESET) + 1, &error);
         if (error != SCUNIT_ERROR_NONE) {
@@ -453,7 +436,8 @@ SCUnitError scunit_vrasnprintfc(
         (*buffer)[0] = '\0';
     }
     int64_t offset = strnlen(*buffer, *size);
-    if (currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) {
+    SCUnitColoredOutput coloredOutput = scunit_getColoredOutput();
+    if (coloredOutput == SCUNIT_COLORED_OUTPUT_ALWAYS) {
         int64_t length = snprintf(
             nullptr,
             0,
@@ -494,7 +478,7 @@ SCUnitError scunit_vrasnprintfc(
     if (vsnprintf(*buffer + offset, *size - offset, format, args) < 0) {
         return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
     }
-    if (currentColoredOutput == SCUNIT_COLORED_OUTPUT_ENABLED) {
+    if (coloredOutput == SCUNIT_COLORED_OUTPUT_ALWAYS) {
         offset += length;
         ensureSize(buffer, size, offset + strlen(COLOR_RESET) + 1, &error);
         if (error != SCUNIT_ERROR_NONE) {
