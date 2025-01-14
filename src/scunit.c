@@ -78,15 +78,14 @@ SCUnitRandom* random;
  */
 [[gnu::constructor(101)]]
 static void init() {
-    SCUnitError error;
-    random = scunit_random_new(&error);
-    if (error != SCUNIT_ERROR_NONE) {
+    random = scunit_random_new();
+    if (random == nullptr) {
         scunit_fprintfc(
             stderr,
             SCUNIT_COLOR_DARK_RED,
             SCUNIT_COLOR_DARK_DEFAULT,
             "An unexpected error occurred while initializing SCUnit (code %d).\n",
-            error
+            SCUNIT_ERROR_OUT_OF_MEMORY
         );
         exit(EXIT_FAILURE);
     }
@@ -100,42 +99,39 @@ SCUnitColoredOutput scunit_getColoredOutput() {
     return config.coloredOutput;
 }
 
-void scunit_setColoredOutput(SCUnitColoredOutput coloredOutput, SCUnitError* error) {
+SCUnitError scunit_setColoredOutput(SCUnitColoredOutput coloredOutput) {
     if ((coloredOutput < SCUNIT_COLORED_OUTPUT_NEVER)
             || (coloredOutput > SCUNIT_COLORED_OUTPUT_ALWAYS)) {
-        *error = SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
-        return;
+        return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
     config.coloredOutput = coloredOutput;
-    *error = SCUNIT_ERROR_NONE;
+    return SCUNIT_ERROR_NONE;
 }
 
 SCUnitOrder scunit_getOrder() {
     return config.order;
 }
 
-void scunit_setOrder(SCUnitOrder order, SCUnitError* error) {
+SCUnitError scunit_setOrder(SCUnitOrder order) {
     if ((order < SCUNIT_ORDER_SEQUENTIAL) || (order > SCUNIT_ORDER_RANDOM)) {
-        *error = SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
-        return;
+        return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
     config.order = order;
-    *error = SCUNIT_ERROR_NONE;
+    return SCUNIT_ERROR_NONE;
 }
 
-void scunit_registerSuite(SCUnitSuite* suite, SCUnitError* error) {
+SCUnitError scunit_registerSuite(SCUnitSuite* suite) {
     if (registeredSuites >= capacity) {
         int64_t newCapacity = (capacity == 0) ? 1 : capacity * GROWTH_FACTOR;
         SCUnitSuite** newSuites = SCUNIT_REALLOC(suites, newCapacity * sizeof(SCUnitSuite*));
         if (newSuites == nullptr) {
-            *error = SCUNIT_ERROR_OUT_OF_MEMORY;
-            return;
+            return SCUNIT_ERROR_OUT_OF_MEMORY;
         }
         suites = newSuites;
         capacity = newCapacity;
     }
     suites[registeredSuites++] = suite;
-    *error = SCUNIT_ERROR_NONE;
+    return SCUNIT_ERROR_NONE;
 }
 
 void scunit_parseArguments(int argc, char** argv) {
@@ -297,21 +293,19 @@ int scunit_executeSuites() {
     }
     int64_t failedSuites = 0;
     SCUnitSummary summary = { };
-    SCUnitError error;
-    SCUnitTimer* timer = scunit_timer_new(&error);
-    if (error != SCUNIT_ERROR_NONE) {
+    SCUnitTimer* timer = scunit_timer_new();
+    if (timer == nullptr) {
         scunit_fprintfc(
             stderr,
             SCUNIT_COLOR_DARK_RED,
             SCUNIT_COLOR_DARK_DEFAULT,
-            "An unexpected error occurred while preparing the execution of the suites "
-            "(code %d).\n",
-            error
+            "An unexpected error occurred while preparing the execution of the suites (code %d).\n",
+            SCUNIT_ERROR_OUT_OF_MEMORY
         );
         exitCode = EXIT_FAILURE;
         goto timerAllocationFailed;
     }
-    scunit_timer_start(timer, &error);
+    SCUnitError error = scunit_timer_start(timer);
     if (error != SCUNIT_ERROR_NONE) {
         scunit_fprintfc(
             stderr,
@@ -326,7 +320,7 @@ int scunit_executeSuites() {
     for (int64_t i = 0; i < registeredSuites; i++) {
         const SCUnitSuite* suite = suites[suiteIndices[i]];
         SCUnitSummary suiteSummary;
-        scunit_suite_execute(suite, &suiteSummary, &error);
+        error = scunit_suite_execute(suite, &suiteSummary);
         if (error != SCUNIT_ERROR_NONE) {
             scunit_fprintfc(
                 stderr,
@@ -346,7 +340,7 @@ int scunit_executeSuites() {
         summary.skippedTests += suiteSummary.skippedTests;
         summary.failedTests += suiteSummary.failedTests;
     }
-    scunit_timer_stop(timer, &error);
+    error = scunit_timer_stop(timer);
     if (error != SCUNIT_ERROR_NONE) {
         scunit_fprintfc(
             stderr,
@@ -445,7 +439,7 @@ int scunit_executeSuites() {
     if (config.order == SCUNIT_ORDER_RANDOM) {
         scunit_printf(
             "\nNote: Suites and tests were executed in a random order.\n"
-            "Specify '--seed=%" PRIu64 "' if you want to reproduce this run.\n",
+            "Specify '--seed=%" PRIu64 "' to reproduce this run.\n",
             scunit_random_getSeed(random)
         );
     }

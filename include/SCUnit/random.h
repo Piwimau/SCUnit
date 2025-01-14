@@ -2,7 +2,6 @@
 #define SCUNIT_RANDOM_H
 
 #include <stdint.h>
-#include <SCUnit/error.h>
 
 /**
  * @brief Represents a pseudorandom number generator (PRNG).
@@ -18,11 +17,9 @@ typedef struct SCUnitRandom SCUnitRandom;
  * @warning An `SCUnitRandom` returned by this function is dynamically allocated and must be passed
  * to `scunit_random_free()` to avoid a memory leak.
  *
- * @param[out] error `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
- *                   otherwise `SCUNIT_ERROR_NONE`.
  * @return A pointer to a new initialized `SCUnitRandom` on success, otherwise a `nullptr`.
  */
-SCUnitRandom* scunit_random_new(SCUnitError* error);
+SCUnitRandom* scunit_random_new();
 
 /**
  * @brief Allocates and initializes a new `SCUnitRandom` with a given seed.
@@ -30,12 +27,10 @@ SCUnitRandom* scunit_random_new(SCUnitError* error);
  * @warning An `SCUnitRandom` returned by this function is dynamically allocated and must be passed
  * to `scunit_random_free()` to avoid a memory leak.
  *
- * @param[in]  seed  Seed to initialize the `SCUnitRandom` with.
- * @param[out] error `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
- *                   otherwise `SCUNIT_ERROR_NONE`.
+ * @param[in] seed Seed to initialize the `SCUnitRandom` with.
  * @return A pointer to a new initialized `SCUnitRandom` on success, otherwise a `nullptr`.
  */
-SCUnitRandom* scunit_random_withSeed(uint64_t seed, SCUnitError* error);
+SCUnitRandom* scunit_random_withSeed(uint64_t seed);
 
 /**
  * @brief Gets the seed of a given `SCUnitRandom`.

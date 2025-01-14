@@ -48,7 +48,7 @@
                 exit(EXIT_FAILURE);                                                               \
             }                                                                                     \
         )                                                                                         \
-        scunit_context_setResult(scunit_context, result, &scunit_error);                          \
+        scunit_error = scunit_context_setResult(scunit_context, result);                          \
         if (scunit_error != SCUNIT_ERROR_NONE) {                                                  \
             scunit_fprintfc(                                                                      \
                 stderr,                                                                           \
@@ -134,7 +134,7 @@
                 );                                                                                \
                 exit(EXIT_FAILURE);                                                               \
             }                                                                                     \
-            scunit_context_appendFileContext(scunit_context, __FILE__, __LINE__, &scunit_error);  \
+            scunit_error = scunit_context_appendFileContext(scunit_context, __FILE__, __LINE__);  \
             if (scunit_error != SCUNIT_ERROR_NONE) {                                              \
                 scunit_fprintfc(                                                                  \
                     stderr,                                                                       \
@@ -184,7 +184,7 @@
                     exit(EXIT_FAILURE);                                                           \
                 }                                                                                 \
             )                                                                                     \
-            scunit_context_setResult(scunit_context, SCUNIT_RESULT_FAIL, &scunit_error);          \
+            scunit_context_setResult(scunit_context, SCUNIT_RESULT_FAIL);                         \
             return;                                                                               \
         }                                                                                         \
     }                                                                                             \

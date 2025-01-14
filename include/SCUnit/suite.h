@@ -77,20 +77,19 @@ typedef struct SCUnitSummary {
     static SCUnitSuite* scunit_suite##name;                                                 \
     [[gnu::constructor(102)]]                                                               \
     static void scunit_registerSuite##name() {                                              \
-        SCUnitError error;                                                                  \
-        scunit_suite##name = scunit_suite_new(#name, &error);                               \
-        if (error != SCUNIT_ERROR_NONE) {                                                   \
+        scunit_suite##name = scunit_suite_new(#name);                                       \
+        if (scunit_suite##name == nullptr) {                                                \
             scunit_fprintfc(                                                                \
                 stderr,                                                                     \
                 SCUNIT_COLOR_DARK_RED,                                                      \
                 SCUNIT_COLOR_DARK_DEFAULT,                                                  \
                 "An unexpected error occurred while allocating the suite %s (code %d).\n",  \
                 #name,                                                                      \
-                error                                                                       \
+                SCUNIT_ERROR_OUT_OF_MEMORY                                                  \
             );                                                                              \
             exit(EXIT_FAILURE);                                                             \
         }                                                                                   \
-        scunit_registerSuite(scunit_suite##name, &error);                                   \
+        SCUnitError error = scunit_registerSuite(scunit_suite##name);                       \
         if (error != SCUNIT_ERROR_NONE) {                                                   \
             scunit_fprintfc(                                                                \
                 stderr,                                                                     \
@@ -126,20 +125,19 @@ typedef struct SCUnitSummary {
     SCUnitSuite* scunit_suite##name;                                                        \
     [[gnu::constructor(102)]]                                                               \
     static void scunit_registerSuite##name() {                                              \
-        SCUnitError error;                                                                  \
-        scunit_suite##name = scunit_suite_new(#name, &error);                               \
-        if (error != SCUNIT_ERROR_NONE) {                                                   \
+        scunit_suite##name = scunit_suite_new(#name);                                       \
+        if (scunit_suite##name == nullptr) {                                                \
             scunit_fprintfc(                                                                \
                 stderr,                                                                     \
                 SCUNIT_COLOR_DARK_RED,                                                      \
                 SCUNIT_COLOR_DARK_DEFAULT,                                                  \
                 "An unexpected error occurred while allocating the suite %s (code %d).\n",  \
                 #name,                                                                      \
-                error                                                                       \
+                SCUNIT_ERROR_OUT_OF_MEMORY                                                  \
             );                                                                              \
             exit(EXIT_FAILURE);                                                             \
         }                                                                                   \
-        scunit_registerSuite(scunit_suite##name, &error);                                   \
+        SCUnitError error = scunit_registerSuite(scunit_suite##name);                       \
         if (error != SCUNIT_ERROR_NONE) {                                                   \
             scunit_fprintfc(                                                                \
                 stderr,                                                                     \
@@ -258,12 +256,10 @@ typedef struct SCUnitSummary {
     static void scunit_suite##suite##Test##name([[maybe_unused]] SCUnitContext* scunit_context); \
     [[gnu::constructor(103)]]                                                                    \
     static void scunit_registerSuite##suite##Test##name() {                                      \
-        SCUnitError error;                                                                       \
-        scunit_suite_registerTest(                                                               \
+        SCUnitError error = scunit_suite_registerTest(                                           \
             scunit_suite##suite,                                                                 \
             #name,                                                                               \
-            scunit_suite##suite##Test##name,                                                     \
-            &error                                                                               \
+            scunit_suite##suite##Test##name                                                      \
         );                                                                                       \
         if (error != SCUNIT_ERROR_NONE) {                                                        \
             scunit_fprintfc(                                                                     \
@@ -285,12 +281,10 @@ typedef struct SCUnitSummary {
  * @warning The `name` is copied internally for reasons of safety. If you pass a dynamically
  * allocated string, you are responsible for deallocating it yourself.
  *
- * @param[in]  name  A null-terminated string for the name of the `SCUnitSuite`.
- * @param[out] error `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
- *                   otherwise `SCUNIT_ERROR_NONE`.
+ * @param[in] name A null-terminated string for the name of the `SCUnitSuite`.
  * @return A pointer to a new initialized `SCUnitSuite` on success, otherwise a `nullptr`.
  */
-SCUnitSuite* scunit_suite_new(const char* name, SCUnitError* error);
+SCUnitSuite* scunit_suite_new(const char* name);
 
 /**
  * @brief Gets the name of a given `SCUnitSuite`.
@@ -362,14 +356,13 @@ void scunit_suite_setTestTeardown(SCUnitSuite* suite, SCUnitTestTeardown testTea
  * @param[in, out] suite        `SCUnitSuite` to register the `SCUnitTestFunction` for.
  * @param[in]      name         A null-terminated string for the name of the test.
  * @param[in]      testFunction `SCUnitTestFunction` to register.
- * @param[out]     error        `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
- *                              otherwise `SCUNIT_ERROR_NONE`.
+ * @return `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
+ * otherwise `SCUNIT_ERROR_NONE`.
  */
-void scunit_suite_registerTest(
+SCUnitError scunit_suite_registerTest(
     SCUnitSuite* suite,
     const char* name,
-    SCUnitTestFunction testFunction,
-    SCUnitError* error
+    SCUnitTestFunction testFunction
 );
 
 /**
@@ -379,22 +372,20 @@ void scunit_suite_registerTest(
  * names of suites and tests, results, time measurements, detailed error messages whenever an
  * assertion fails and a summary at the end.
  *
- * This function respects the current colored output state set by calling
- * `scunit_setColoredOutput()`. If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, the default color
- * is used instead. See `<SCUnit/scunit.h>` for more information.
+ * It respects the current colored output state set by calling `scunit_setColoredOutput()`.
+ * If currently set to `SCUNIT_COLORED_OUTPUT_NEVER`, the default color is used instead.
+ * See `<SCUnit/scunit.h>` for more information.
  *
  * @param[in]  suite   `SCUnitSuite` to execute.
  * @param[out] summary An `SCUnitSummary` produced as the result.
- * @param[out] error   `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
- *                     `SCUNIT_ERROR_OPENING_STREAM_FAILED`, `SCUNIT_ERROR_READING_STREAM_FAILED`,
- *                     `SCUNIT_ERROR_WRITING_STREAM_FAILED` or `SCUNIT_ERROR_CLOSING_STREAM_FAILED`
- *                     if opening, reading from, writing to or closing a stream failed,
- *                     `SCUNIT_ERROR_WRITING_BUFFER_FAILED` if writing to a buffer failed,
- *                     `SCUNIT_ERROR_TIMER_FAILED` if an `SCUnitTimer` failed,
- *                     `SCUNIT_ERROR_UNKNOWN_RESULT` if an unknown test result is encountered (a
- *                     sign of a serious programming error) and `SCUNIT_ERROR_NONE` otherwise.
+ * @return `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
+ * `SCUNIT_ERROR_OPENING_STREAM_FAILED`, `SCUNIT_ERROR_READING_STREAM_FAILED`,
+ * `SCUNIT_ERROR_WRITING_STREAM_FAILED` or `SCUNIT_ERROR_CLOSING_STREAM_FAILED` if opening, reading
+ * from, writing to or closing a stream failed, `SCUNIT_ERROR_WRITING_BUFFER_FAILED` if writing to
+ * a buffer failed, `SCUNIT_ERROR_TIMER_FAILED` if an `SCUnitTimer` failed and `SCUNIT_ERROR_NONE`
+ * otherwise.
  */
-void scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitError* error);
+SCUnitError scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary);
 
 /**
  * @brief Deallocates a given `SCUnitSuite`.

@@ -88,20 +88,17 @@ static constexpr int64_t GROWTH_FACTOR = 2;
 
 extern SCUnitRandom* random;
 
-SCUnitSuite* scunit_suite_new(const char* name, SCUnitError* error) {
+SCUnitSuite* scunit_suite_new(const char* name) {
     SCUnitSuite* suite = SCUNIT_MALLOC(sizeof(SCUnitSuite));
     if (suite == nullptr) {
-        *error = SCUNIT_ERROR_OUT_OF_MEMORY;
         return nullptr;
     }
     *suite = (SCUnitSuite) { };
     suite->name = strdup(name);
     if (suite->name == nullptr) {
         SCUNIT_FREE(suite);
-        *error = SCUNIT_ERROR_OUT_OF_MEMORY;
         return nullptr;
     }
-    *error = SCUNIT_ERROR_NONE;
     return suite;
 }
 
@@ -125,35 +122,33 @@ void scunit_suite_setTestTeardown(SCUnitSuite* suite, SCUnitTestTeardown testTea
     suite->testTeardown = testTeardown;
 }
 
-void scunit_suite_registerTest(
+SCUnitError scunit_suite_registerTest(
     SCUnitSuite* suite,
     const char* name,
-    SCUnitTestFunction testFunction,
-    SCUnitError* error
+    SCUnitTestFunction testFunction
 ) {
     if (suite->registeredTests >= suite->capacity) {
         int64_t newCapacity = (suite->capacity == 0) ? 1 : suite->capacity * GROWTH_FACTOR;
         SCUnitTest* newTests = SCUNIT_REALLOC(suite->tests, newCapacity * sizeof(SCUnitTest));
         if (newTests == nullptr) {
-            *error = SCUNIT_ERROR_OUT_OF_MEMORY;
-            return;
+            return SCUNIT_ERROR_OUT_OF_MEMORY;
         }
         suite->tests = newTests;
         suite->capacity = newCapacity;
     }
     char* nameCopy = strdup(name);
     if (nameCopy == nullptr) {
-        *error = SCUNIT_ERROR_OUT_OF_MEMORY;
-        return;
+        return SCUNIT_ERROR_OUT_OF_MEMORY;
     }
     suite->tests[suite->registeredTests++] = (SCUnitTest) {
         .name = nameCopy,
         .testFunction = testFunction
     };
-    *error = SCUNIT_ERROR_NONE;
+    return SCUNIT_ERROR_NONE;
 }
 
-void scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary, SCUnitError* error) {
+SCUnitError scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary) {
+    SCUnitError error = SCUNIT_ERROR_NONE;
     // Tests can be executed in a sequential or random order. This means that we may need to shuffle
     // the indices of the tests. If no tests are registered, `testIndices` is a `nullptr` since
     // allocating an array of size zero results in implementation-defined behavior (which we try to
@@ -162,7 +157,7 @@ void scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary, SCUn
     if (suite->registeredTests > 0) {
         testIndices = SCUNIT_MALLOC(suite->registeredTests * sizeof(int64_t));
         if (testIndices == nullptr) {
-            *error = SCUNIT_ERROR_OUT_OF_MEMORY;
+            error = SCUNIT_ERROR_OUT_OF_MEMORY;
             goto testIndicesAllocationFailed;
         }
     }
@@ -179,24 +174,27 @@ void scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary, SCUn
             testIndices[j] = temp;
         }
     }
-    SCUnitTimer* suiteTimer = scunit_timer_new(error);
-    if (*error != SCUNIT_ERROR_NONE) {
+    SCUnitTimer* suiteTimer = scunit_timer_new();
+    if (suiteTimer == nullptr) {
+        error = SCUNIT_ERROR_OUT_OF_MEMORY;
         goto suiteTimerAllocationFailed;
     }
-    SCUnitTimer* testTimer = scunit_timer_new(error);
-    if (*error != SCUNIT_ERROR_NONE) {
+    SCUnitTimer* testTimer = scunit_timer_new();
+    if (testTimer == nullptr) {
+        error = SCUNIT_ERROR_OUT_OF_MEMORY;
         goto testTimerAllocationFailed;
     }
-    SCUnitContext* context = scunit_context_new(error);
-    if (*error != SCUNIT_ERROR_NONE) {
+    SCUnitContext* context = scunit_context_new();
+    if (context == nullptr) {
+        error = SCUNIT_ERROR_OUT_OF_MEMORY;
         goto contextAllocationFailed;
     }
     scunit_printf("--- Suite ");
     scunit_printfc(SCUNIT_COLOR_DARK_CYAN, SCUNIT_COLOR_DARK_DEFAULT, "%s", suite->name);
     scunit_printf(" ---\n\n");
     *summary = (SCUnitSummary) { };
-    scunit_timer_start(suiteTimer, error);
-    if (*error != SCUNIT_ERROR_NONE) {
+    error = scunit_timer_start(suiteTimer);
+    if (error != SCUNIT_ERROR_NONE) {
         goto failed;
     }
     if (suite->suiteSetup != nullptr) {
@@ -212,13 +210,13 @@ void scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary, SCUn
         scunit_printf("... ");
         // Reuse the context for every test to avoid some unnecessary memory allocations.
         scunit_context_reset(context);
-        scunit_timer_start(testTimer, error);
-        if (*error != SCUNIT_ERROR_NONE) {
+        error = scunit_timer_start(testTimer);
+        if (error != SCUNIT_ERROR_NONE) {
             goto failed;
         }
         test->testFunction(context);
-        scunit_timer_stop(testTimer, error);
-        if (*error != SCUNIT_ERROR_NONE) {
+        error = scunit_timer_stop(testTimer);
+        if (error != SCUNIT_ERROR_NONE) {
             goto failed;
         }
         SCUnitResult result = scunit_context_getResult(context);
@@ -245,12 +243,13 @@ void scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary, SCUn
                     stderr,
                     SCUNIT_COLOR_DARK_RED,
                     SCUNIT_COLOR_DARK_DEFAULT,
-                    "Unreachable.\n"
+                    "Encountered an unexpected test result '%d'.\n",
+                    result
                 );
                 exit(EXIT_FAILURE);
         }
-        SCUnitMeasurement wallTimeMeasurement = scunit_timer_getWallTime(testTimer, error);
-        SCUnitMeasurement cpuTimeMeasurement = scunit_timer_getCPUTime(testTimer, error);
+        SCUnitMeasurement wallTimeMeasurement = scunit_timer_getWallTime(testTimer, &error);
+        SCUnitMeasurement cpuTimeMeasurement = scunit_timer_getCPUTime(testTimer, &error);
         scunit_fprintf(
             (result == SCUNIT_RESULT_FAIL) ? stderr : stdout,
             " [Wall: %.3F %s, CPU: %.3F %s]\n",
@@ -273,12 +272,12 @@ void scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary, SCUn
     if (suite->suiteTeardown != nullptr) {
         suite->suiteTeardown();
     }
-    scunit_timer_stop(suiteTimer, error);
-    if (*error != SCUNIT_ERROR_NONE) {
+    error = scunit_timer_stop(suiteTimer);
+    if (error != SCUNIT_ERROR_NONE) {
         goto failed;
     }
-    SCUnitMeasurement wallTimeMeasurement = scunit_timer_getWallTime(suiteTimer, error);
-    SCUnitMeasurement cpuTimeMeasurement = scunit_timer_getCPUTime(suiteTimer, error);
+    SCUnitMeasurement wallTimeMeasurement = scunit_timer_getWallTime(suiteTimer, &error);
+    SCUnitMeasurement cpuTimeMeasurement = scunit_timer_getCPUTime(suiteTimer, &error);
     scunit_printf("Tests: ");
     scunit_printfc(
         (summary->passedTests > 0) ? SCUNIT_COLOR_DARK_GREEN : SCUNIT_COLOR_DARK_DEFAULT,
@@ -335,7 +334,6 @@ void scunit_suite_execute(const SCUnitSuite* suite, SCUnitSummary* summary, SCUn
         cpuTimeMeasurement.time,
         cpuTimeMeasurement.timeUnitString
     );
-    *error = SCUNIT_ERROR_NONE;
 failed:
     scunit_context_free(context);
 contextAllocationFailed:
@@ -345,6 +343,7 @@ testTimerAllocationFailed:
 suiteTimerAllocationFailed:
     SCUNIT_FREE(testIndices);
 testIndicesAllocationFailed:
+    return error;
 }
 
 void scunit_suite_free(SCUnitSuite* suite) {

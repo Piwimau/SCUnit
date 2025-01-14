@@ -18,18 +18,16 @@ struct SCUnitRandom {
 
 };
 
-SCUnitRandom* scunit_random_new(SCUnitError* error) {
-    return scunit_random_withSeed((uint64_t) time(nullptr), error);
+SCUnitRandom* scunit_random_new() {
+    return scunit_random_withSeed((uint64_t) time(nullptr));
 }
 
-SCUnitRandom* scunit_random_withSeed(uint64_t seed, SCUnitError* error) {
+SCUnitRandom* scunit_random_withSeed(uint64_t seed) {
     SCUnitRandom* random = SCUNIT_MALLOC(sizeof(SCUnitRandom));
     if (random == nullptr) {
-        *error = SCUNIT_ERROR_OUT_OF_MEMORY;
         return nullptr;
     }
     scunit_random_setSeed(random, seed);
-    *error = SCUNIT_ERROR_NONE;
     return random;
 }
 

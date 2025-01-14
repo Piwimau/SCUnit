@@ -71,11 +71,11 @@ SCUnitColoredOutput scunit_getColoredOutput();
  *
  * @note Colored output is always used by default (set to `SCUNIT_COLORED_OUTPUT_ALWAYS`).
  *
- * @param[in]  coloredOutput `SCUnitColoredOutput` state to set.
- * @param[out] error         `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `coloredOutput` is not a valid
- *                           `SCUnitColoredOutput`, otherwise `SCUNIT_ERROR_NONE`.
+ * @param[in] coloredOutput `SCUnitColoredOutput` state to set.
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `coloredOutput` is not a valid
+ * `SCUnitColoredOutput`, otherwise `SCUNIT_ERROR_NONE`.
  */
-void scunit_setColoredOutput(SCUnitColoredOutput coloredOutput, SCUnitError* error);
+SCUnitError scunit_setColoredOutput(SCUnitColoredOutput coloredOutput);
 
 /**
  * @brief Gets the current order in which suites and tests are executed.
@@ -90,11 +90,11 @@ SCUnitOrder scunit_getOrder();
 /**
  * @brief Sets the order in which suites and tests are executed.
  *
- * @param[in]  order `SCUnitOrder` to set.
- * @param[out] error `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `order` is not a valid `SCUnitOrder`,
- *                   otherwise `SCUNIT_ERROR_NONE`.
+ * @param[in] order `SCUnitOrder` to set.
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `order` is not a valid `SCUnitOrder`,
+ * otherwise `SCUNIT_ERROR_NONE`.
  */
-void scunit_setOrder(SCUnitOrder order, SCUnitError* error);
+SCUnitError scunit_setOrder(SCUnitOrder order);
 
 /**
  * @brief Registers an `SCUnitSuite` to be executed automatically by SCUnit.
@@ -105,11 +105,11 @@ void scunit_setOrder(SCUnitOrder order, SCUnitError* error);
  * @warning SCUnit takes ownership of the given `SCUnitSuite` and is responsible for the
  * deallocation. You must not deallocate it manually yourself.
  *
- * @param[in]  suite `SCUnitSuite` to register.
- * @param[out] error `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
- *                   otherwise `SCUNIT_ERROR_NONE`.
+ * @param[in] suite `SCUnitSuite` to register.
+ * @return `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
+ * otherwise `SCUNIT_ERROR_NONE`.
  */
-void scunit_registerSuite(SCUnitSuite* suite, SCUnitError* error);
+SCUnitError scunit_registerSuite(SCUnitSuite* suite);
 
 /**
  * @brief Parses the command line arguments passed to the test executable.

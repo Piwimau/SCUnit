@@ -28,11 +28,9 @@ typedef enum SCUnitResult {
  * @note Allocation of an `SCUnitContext` is handled automatically by the `SCUnitSuite` containing
  * the relevant test. You should not use this function, it is intended for internal use only.
  *
- * @param[out] error `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
- *                   otherwise `SCUNIT_ERROR_NONE`.
  * @return A pointer to a new initialized `SCUnitContext` on success, otherwise a `nullptr`.
  */
-SCUnitContext* scunit_context_new(SCUnitError* error);
+SCUnitContext* scunit_context_new();
 
 /**
  * @brief Resets a given `SCUnitContext`.
@@ -57,10 +55,10 @@ SCUnitResult scunit_context_getResult(const SCUnitContext* context);
  *
  * @param[in, out] context `SCUnitContext` to set the `SCUnitResult` of.
  * @param[in]      result  `SCUnitResult` to set.
- * @param[out]     error   `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `result` is not a valid
- *                         `SCUnitResult`, otherwise `SCUNIT_ERROR_NONE`.
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `result` is not a valid `SCUnitResult`,
+ * otherwise `SCUNIT_ERROR_NONE`.
  */
-void scunit_context_setResult(SCUnitContext* context, SCUnitResult result, SCUnitError* error);
+SCUnitError scunit_context_setResult(SCUnitContext* context, SCUnitResult result);
 
 /**
  * @brief Gets the message of a given `SCUnitContext`.
@@ -170,27 +168,26 @@ SCUnitError scunit_context_appendColoredMessage(
  * @param[in, out] context  `SCUnitContext` to append to.
  * @param[in]      filename Name of the file to read the file context from.
  * @param[in]      line     Line around which the file context should be read.
- * @param[out]     error    `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `line` is less than one (lines
- *                          are one-based), `SCUNIT_ERROR_OPENING_STREAM_FAILED` if opening the file
- *                          with the name `filename` failed,
- *                          `SCUNIT_ERROR_READING_STREAM_FAILED` if reading the file with the name
- *                          `filename` failed, `SCUNIT_ERROR_CLOSING_STREAM_FAILED` if closing the
- *                          file with the name `filename` failed, `SCUNIT_ERROR_OUT_OF_MEMORY` if an
- *                          out-of-memory condition occurred,
- *                          `SCUNIT_ERROR_WRITING_BUFFER_FAILED` if appending the file context
- *                          failed and `SCUNIT_ERROR_NONE` otherwise.
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `line` is less than one (lines are one-based),
+ * `SCUNIT_ERROR_OPENING_STREAM_FAILED` if opening the file with the name `filename` failed,
+ * `SCUNIT_ERROR_READING_STREAM_FAILED` if reading the file with the name `filename` failed,
+ * `SCUNIT_ERROR_CLOSING_STREAM_FAILED` if closing the file with the name `filename` failed,
+ * `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
+ * `SCUNIT_ERROR_WRITING_BUFFER_FAILED` if appending the file context failed and
+ * `SCUNIT_ERROR_NONE` otherwise.
  */
-void scunit_context_appendFileContext(
+SCUnitError scunit_context_appendFileContext(
     SCUnitContext* context,
     const char* filename,
-    int64_t line,
-    SCUnitError* error
+    int64_t line
 );
 
 /**
  * @brief Deallocates a given `SCUnitContext`.
  *
- * @note Deallocation of an `SCUnitContext` is handled automatically by the `SCUnitSuite` containing
+ * @note For convenience, `context` is allowed to be `nullptr`.
+ *
+ * Deallocation of an `SCUnitContext` is handled automatically by the `SCUnitSuite` containing
  * the relevant test. You should not use this function, it is intended for internal use only.
  *
  * @warning Any use of the `SCUnitContext` after it has been deallocated results in undefined

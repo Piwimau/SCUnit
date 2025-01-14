@@ -61,11 +61,9 @@ typedef struct SCUnitMeasurement {
  * @warning An `SCUnitTimer` returned by this function is dynamically allocated and must be passed
  * to `scunit_timer_free()` to avoid a memory leak.
  *
- * @param[out] error `SCUNIT_ERROR_OUT_OF_MEMORY` if an out-of-memory condition occurred,
- *                   otherwise `SCUNIT_ERROR_NONE`.
  * @return A pointer to a new initialized `SCUnitTimer` on success, otherwise a `nullptr`.
  */
-SCUnitTimer* scunit_timer_new(SCUnitError* error);
+SCUnitTimer* scunit_timer_new();
 
 /**
  * @brief Starts measuring time using a given `SCUnitTimer`.
@@ -75,11 +73,10 @@ SCUnitTimer* scunit_timer_new(SCUnitError* error);
  * instead.
  *
  * @param[in, out] timer `SCUnitTimer` to start measuring time with.
- * @param[out]     error `SCUNIT_ERROR_TIMER_RUNNING` if `timer` is already running,
- *                       `SCUNIT_ERROR_TIMER_FAILED` if starting `timer` failed and
- *                       `SCUNIT_ERROR_NONE` otherwise.
+ * @return `SCUNIT_ERROR_TIMER_RUNNING` if `timer` is already running,
+ * `SCUNIT_ERROR_TIMER_FAILED` if starting `timer` failed and `SCUNIT_ERROR_NONE` otherwise.
  */
-void scunit_timer_start(SCUnitTimer* timer, SCUnitError* error);
+SCUnitError scunit_timer_start(SCUnitTimer* timer);
 
 /**
  * @brief Restarts measuring time using a given `SCUnitTimer`.
@@ -87,21 +84,19 @@ void scunit_timer_start(SCUnitTimer* timer, SCUnitError* error);
  * @attention An `SCUnitTimer` must already be running in order to be able to restart it.
  *
  * @param[in, out] timer `SCUnitTimer` to restart measuring time with.
- * @param[out]     error `SCUNIT_ERROR_TIMER_NOT_RUNNING` if `timer` is not already running,
- *                       `SCUNIT_ERROR_TIMER_FAILED` if restarting `timer` failed and
- *                       `SCUNIT_ERROR_NONE` otherwise.
+ * @return `SCUNIT_ERROR_TIMER_NOT_RUNNING` if `timer` is not already running,
+ * `SCUNIT_ERROR_TIMER_FAILED` if restarting `timer` failed and `SCUNIT_ERROR_NONE` otherwise.
  */
-void scunit_timer_restart(SCUnitTimer* timer, SCUnitError* error);
+SCUnitError scunit_timer_restart(SCUnitTimer* timer);
 
 /**
  * @brief Stops measuring time using a given `SCUnitTimer`.
  *
  * @param[in, out] timer `SCUnitTimer` to stop measuring time with.
- * @param[out]     error `SCUNIT_ERROR_TIMER_NOT_RUNNING` if `timer` is not running,
- *                       `SCUNIT_ERROR_TIMER_FAILED` if stopping `timer` failed and
- *                       `SCUNIT_ERROR_NONE` otherwise.
+ * @return `SCUNIT_ERROR_TIMER_NOT_RUNNING` if `timer` is not running,
+ * `SCUNIT_ERROR_TIMER_FAILED` if stopping `timer` failed and `SCUNIT_ERROR_NONE` otherwise.
  */
-void scunit_timer_stop(SCUnitTimer* timer, SCUnitError* error);
+SCUnitError scunit_timer_stop(SCUnitTimer* timer);
 
 /**
  * @brief Determines if a given `SCUnitTimer` is running.

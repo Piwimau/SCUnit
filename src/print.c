@@ -199,24 +199,21 @@ SCUnitError scunit_rsnprintf(char** buffer, int64_t* size, const char* format, .
  *
  * @param[in, out] buffer       Buffer that may need to be resized to have at least the required
  *                              size.
- * @param[in, out] size         Current size of the buffer (including the terminating `\0` byte).
- *                              The size is updated if `*buffer` is resized.
+ * @param[in, out] size         Size of the buffer (including the terminating `\0` byte). It is
+ *                              updated if `*buffer` is resized.
  * @param[in]      requiredSize Minimum size of the buffer to ensure.
- * @param[out]     error        `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` or `requiredSize`
- *                              is negative, if `*buffer` is `nullptr` and `*size` is not equal to
- *                              zero or if `*buffer` is not `nullptr` and `*size` is equal to zero,
- *                              `SCUNIT_ERROR_OUT_OF_MEMORY` if an resizing the buffer failed due to
- *                              an out-of-memory condition and `SCUNIT_ERROR_NONE` otherwise.
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` or `requiredSize` is negative,
+ * if `*buffer` is `nullptr` and `*size` is not equal to zero or if `*buffer` is not `nullptr` and
+ * `*size` is equal to zero, `SCUNIT_ERROR_OUT_OF_MEMORY` if an resizing the buffer failed due to an
+ * out-of-memory condition and `SCUNIT_ERROR_NONE` otherwise.
  */
-static inline void ensureSize(
+static inline SCUnitError ensureSize(
     char** buffer,
     int64_t* size,
-    int64_t requiredSize,
-    SCUnitError* error
+    int64_t requiredSize
 ) {
     if ((*size < 0) || (requiredSize < 0) || ((*buffer == nullptr) != (*size == 0))) {
-        *error = SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
-        return;
+        return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
     if (*size < requiredSize) {
         int64_t newSize = (*size == 0) ? 1 : *size;
@@ -225,13 +222,12 @@ static inline void ensureSize(
         }
         char* newBuffer = SCUNIT_REALLOC(*buffer, newSize);
         if (newBuffer == nullptr) {
-            *error = SCUNIT_ERROR_OUT_OF_MEMORY;
-            return;
+            return SCUNIT_ERROR_OUT_OF_MEMORY;
         }
         *buffer = newBuffer;
         *size = newSize;
     }
-    *error = SCUNIT_ERROR_NONE;
+    return SCUNIT_ERROR_NONE;
 }
 
 SCUnitError scunit_vrsnprintf(char** buffer, int64_t* size, const char* format, va_list args) {
@@ -240,7 +236,7 @@ SCUnitError scunit_vrsnprintf(char** buffer, int64_t* size, const char* format, 
     }
     SCUnitError error;
     if (*buffer == nullptr) {
-        ensureSize(buffer, size, INITIAL_BUFFER_SIZE, &error);
+        error = ensureSize(buffer, size, INITIAL_BUFFER_SIZE);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
@@ -255,7 +251,7 @@ SCUnitError scunit_vrsnprintf(char** buffer, int64_t* size, const char* format, 
     if (length < 0) {
         return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
     }
-    ensureSize(buffer, size, length + 1, &error);
+    error = ensureSize(buffer, size, length + 1);
     if (error != SCUNIT_ERROR_NONE) {
         return error;
     }
@@ -294,7 +290,7 @@ SCUnitError scunit_vrsnprintfc(
     }
     SCUnitError error;
     if (*buffer == nullptr) {
-        ensureSize(buffer, size, INITIAL_BUFFER_SIZE, &error);
+        error = ensureSize(buffer, size, INITIAL_BUFFER_SIZE);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
@@ -315,7 +311,7 @@ SCUnitError scunit_vrsnprintfc(
         if (length < 0) {
             return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
         }
-        ensureSize(buffer, size, offset + length + 1, &error);
+        error = ensureSize(buffer, size, offset + length + 1);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
@@ -338,7 +334,7 @@ SCUnitError scunit_vrsnprintfc(
     if (length < 0) {
         return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
     }
-    ensureSize(buffer, size, offset + length + 1, &error);
+    error = ensureSize(buffer, size, offset + length + 1);
     if (error != SCUNIT_ERROR_NONE) {
         return error;
     }
@@ -347,7 +343,7 @@ SCUnitError scunit_vrsnprintfc(
     }
     if (coloredOutput == SCUNIT_COLORED_OUTPUT_ALWAYS) {
         offset += length;
-        ensureSize(buffer, size, offset + strlen(COLOR_RESET) + 1, &error);
+        error = ensureSize(buffer, size, offset + strlen(COLOR_RESET) + 1);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
@@ -372,7 +368,7 @@ SCUnitError scunit_vrasnprintf(char** buffer, int64_t* size, const char* format,
     }
     SCUnitError error;
     if (*buffer == nullptr) {
-        ensureSize(buffer, size, INITIAL_BUFFER_SIZE, &error);
+        error = ensureSize(buffer, size, INITIAL_BUFFER_SIZE);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
@@ -388,7 +384,7 @@ SCUnitError scunit_vrasnprintf(char** buffer, int64_t* size, const char* format,
         return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
     }
     int64_t offset = strnlen(*buffer, *size);
-    ensureSize(buffer, size, offset + length + 1, &error);
+    error = ensureSize(buffer, size, offset + length + 1);
     if (error != SCUNIT_ERROR_NONE) {
         return error;
     }
@@ -427,7 +423,7 @@ SCUnitError scunit_vrasnprintfc(
     }
     SCUnitError error;
     if (*buffer == nullptr) {
-        ensureSize(buffer, size, INITIAL_BUFFER_SIZE, &error);
+        error = ensureSize(buffer, size, INITIAL_BUFFER_SIZE);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
@@ -448,7 +444,7 @@ SCUnitError scunit_vrasnprintfc(
         if (length < 0) {
             return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
         }
-        ensureSize(buffer, size, offset + length + 1, &error);
+        error = ensureSize(buffer, size, offset + length + 1);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }
@@ -471,7 +467,7 @@ SCUnitError scunit_vrasnprintfc(
     if (length < 0) {
         return SCUNIT_ERROR_WRITING_BUFFER_FAILED;
     }
-    ensureSize(buffer, size, offset + length + 1, &error);
+    error = ensureSize(buffer, size, offset + length + 1);
     if (error != SCUNIT_ERROR_NONE) {
         return error;
     }
@@ -480,7 +476,7 @@ SCUnitError scunit_vrasnprintfc(
     }
     if (coloredOutput == SCUNIT_COLORED_OUTPUT_ALWAYS) {
         offset += length;
-        ensureSize(buffer, size, offset + strlen(COLOR_RESET) + 1, &error);
+        error = ensureSize(buffer, size, offset + strlen(COLOR_RESET) + 1);
         if (error != SCUNIT_ERROR_NONE) {
             return error;
         }

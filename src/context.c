@@ -33,10 +33,9 @@ static constexpr int64_t GROWTH_FACTOR = 2;
 /** @brief Number of context lines to be read and included around a line of a failed assertion. */
 static constexpr int64_t CONTEXT_LINES = 2;
 
-SCUnitContext* scunit_context_new(SCUnitError* error) {
+SCUnitContext* scunit_context_new() {
     SCUnitContext* context = SCUNIT_MALLOC(sizeof(SCUnitContext));
     if (context == nullptr) {
-        *error = SCUNIT_ERROR_OUT_OF_MEMORY;
         return nullptr;
     }
     context->result = SCUNIT_RESULT_PASS;
@@ -44,10 +43,8 @@ SCUnitContext* scunit_context_new(SCUnitError* error) {
     context->message = SCUNIT_CALLOC(INITIAL_BUFFER_SIZE, sizeof(char));
     if (context->message == nullptr) {
         SCUNIT_FREE(context);
-        *error = SCUNIT_ERROR_OUT_OF_MEMORY;
         return nullptr;
     }
-    *error = SCUNIT_ERROR_NONE;
     return context;
 }
 
@@ -60,13 +57,12 @@ SCUnitResult scunit_context_getResult(const SCUnitContext* context) {
     return context->result;
 }
 
-void scunit_context_setResult(SCUnitContext* context, SCUnitResult result, SCUnitError* error) {
+SCUnitError scunit_context_setResult(SCUnitContext* context, SCUnitResult result) {
     if ((result < SCUNIT_RESULT_PASS) || (result > SCUNIT_RESULT_FAIL)) {
-        *error = SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
-        return;
+        return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
     context->result = result;
-    *error = SCUNIT_ERROR_NONE;
+    return SCUNIT_ERROR_NONE;
 }
 
 const char* scunit_context_getMessage(const SCUnitContext* context) {
@@ -158,30 +154,26 @@ SCUnitError scunit_context_appendColoredMessage(
  * @param[in, out] size      Size of the buffer (including the terminating `\0` byte). The size is
  *                           updated whenever `*buffer` is resized.
  * @param[out]     moreLines Whether more lines are available to be read.
- * @param[out]     error     `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` is negative,
- *                           if `*buffer` is `nullptr` and `*size` is not equal to zero or if
- *                           `*buffer` is not `nullptr` and `*size` is equal to zero,
- *                           `SCUNIT_ERROR_OUT_OF_MEMORY` if resizing `*buffer` failed due to an
- *                           out-of-memory condition, `SCUNIT_ERROR_READING_STREAM_FAILED` if
- *                           reading from `stream` failed and `SCUNIT_ERROR_NONE` otherwise.
+ * @return `SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE` if `*size` is negative, if `*buffer` is `nullptr`
+ * and `*size` is not equal to zero or if `*buffer` is not `nullptr` and `*size` is equal to zero,
+ * `SCUNIT_ERROR_OUT_OF_MEMORY` if resizing `*buffer` failed due to an out-of-memory condition,
+ * `SCUNIT_ERROR_READING_STREAM_FAILED` if reading from `stream` failed and `SCUNIT_ERROR_NONE`
+ * otherwise.
  */
-static void readLine(
+static SCUnitError readLine(
     FILE* stream,
     char** buffer,
     int64_t* size,
-    bool* moreLines,
-    SCUnitError* error
+    bool* moreLines
 ) {
     if ((*size < 0) || ((*buffer == nullptr) != (*size == 0))) {
-        *error = SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
-        return;
+        return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
     if (*buffer == nullptr) {
         int64_t newSize = INITIAL_BUFFER_SIZE;
         char* newBuffer = SCUNIT_CALLOC(newSize, sizeof(char));
         if (newBuffer == nullptr) {
-            *error = SCUNIT_ERROR_OUT_OF_MEMORY;
-            return;
+            return SCUNIT_ERROR_OUT_OF_MEMORY;
         }
         *buffer = newBuffer;
         *size = newSize;
@@ -194,8 +186,7 @@ static void readLine(
             int64_t newSize = *size * GROWTH_FACTOR;
             char* newBuffer = SCUNIT_REALLOC(*buffer, newSize);
             if (newBuffer == nullptr) {
-                *error = SCUNIT_ERROR_OUT_OF_MEMORY;
-                return;
+                return SCUNIT_ERROR_OUT_OF_MEMORY;
             }
             *buffer = newBuffer;
             *size = newSize;
@@ -204,29 +195,24 @@ static void readLine(
     }
     *moreLines = (c == '\n');
     if (ferror(stream)) {
-        *error = SCUNIT_ERROR_READING_STREAM_FAILED;
-        return;
+        return SCUNIT_ERROR_READING_STREAM_FAILED;
     }
     (*buffer)[index] = '\0';
-    *error = SCUNIT_ERROR_NONE;
+    return SCUNIT_ERROR_NONE;
 }
 
-void scunit_context_appendFileContext(
+SCUnitError scunit_context_appendFileContext(
     SCUnitContext* context,
     const char* filename,
-    int64_t line,
-    SCUnitError* error
+    int64_t line
 ) {
     if (line < 1) {
-        *error = SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
-        return;
+        return SCUNIT_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
     FILE* file = fopen(filename, "r");
     if (file == nullptr) {
-        *error = SCUNIT_ERROR_OPENING_STREAM_FAILED;
-        return;
+        return SCUNIT_ERROR_OPENING_STREAM_FAILED;
     }
-    *error = SCUNIT_ERROR_NONE;
     // The relevant line might be at the very beginning of the file, in which case we cannot print
     // enough context lines before it. We simply fallback to using the very first line of the file
     // as the first context line.
@@ -235,19 +221,20 @@ void scunit_context_appendFileContext(
     // Line numbers are right-aligned for better readability. We therefore need to know how wide the
     // largest line number (in the last line) is to be able to do the formatting correctly.
     int64_t maxLineNumberWidth = ((int64_t) log10(lastContextLine)) + 1;
+    SCUnitError error = SCUNIT_ERROR_NONE;
     char* buffer = nullptr;
     int64_t size = 0;
     bool moreLines = true;
     for (int64_t i = 1; (i <= lastContextLine) && moreLines; i++) {
-        readLine(file, &buffer, &size, &moreLines, error);
-        if (*error != SCUNIT_ERROR_NONE) {
+        error = readLine(file, &buffer, &size, &moreLines);
+        if (error != SCUNIT_ERROR_NONE) {
             goto failed;
         }
         // Skip all irrelevant lines before the first context line.
         if (i < firstContextLine) {
             continue;
         }
-        *error = scunit_rasnprintfc(
+        error = scunit_rasnprintfc(
             &context->message,
             &context->size,
             SCUNIT_COLOR_DARK_CYAN,
@@ -256,14 +243,14 @@ void scunit_context_appendFileContext(
             maxLineNumberWidth,
             i
         );
-        if (*error != SCUNIT_ERROR_NONE) {
+        if (error != SCUNIT_ERROR_NONE) {
             goto failed;
         }
-        *error = scunit_rasnprintf(&context->message, &context->size, " | ", maxLineNumberWidth, i);
-        if (*error != SCUNIT_ERROR_NONE) {
+        error = scunit_rasnprintf(&context->message, &context->size, " | ", maxLineNumberWidth, i);
+        if (error != SCUNIT_ERROR_NONE) {
             goto failed;
         }
-        *error = scunit_rasnprintfc(
+        error = scunit_rasnprintfc(
             &context->message,
             &context->size,
             (i == line) ? SCUNIT_COLOR_DARK_RED : SCUNIT_COLOR_DARK_DEFAULT,
@@ -271,16 +258,17 @@ void scunit_context_appendFileContext(
             "%s\n",
             buffer
         );
-        if (*error != SCUNIT_ERROR_NONE) {
+        if (error != SCUNIT_ERROR_NONE) {
             goto failed;
         }
     }
 failed:
     SCUNIT_FREE(buffer);
     // Note that closing the file might fail, but we only care about an error that occurred first.
-    if ((fclose(file) == EOF) && (*error == SCUNIT_ERROR_NONE)) {
-        *error = SCUNIT_ERROR_CLOSING_STREAM_FAILED;
+    if ((fclose(file) == EOF) && (error == SCUNIT_ERROR_NONE)) {
+        error = SCUNIT_ERROR_CLOSING_STREAM_FAILED;
     }
+    return error;
 }
 
 void scunit_context_free(SCUnitContext* context) {
