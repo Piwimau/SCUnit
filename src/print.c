@@ -86,10 +86,10 @@ SCUnitError scunit_printfc(
 }
 
 /**
- * @brief Determines if a given value is a valid `SCUnitColor`.
+ * @brief Determines if a given color is a valid `SCUnitColor`.
  *
- * @param[in] color Value to check.
- * @return `true` if the given value is a valid `SCUnitColor`, otherwise `false`.
+ * @param[in] color Color to check.
+ * @return `true` if the given color is a valid `SCUnitColor`, otherwise `false`.
  */
 static inline bool isValidColor(SCUnitColor color) {
     return (color >= SCUNIT_COLOR_DARK_BLACK) && (color <= SCUNIT_COLOR_BRIGHT_DEFAULT);
@@ -241,7 +241,7 @@ SCUnitError scunit_vrsnprintf(char** buffer, int64_t* size, const char* format, 
             return error;
         }
         // Ensure the buffer is null-terminated since `ensureSize()` uses `SCUNIT_REALLOC()`
-        // internally, which does not zero-initialize new memory areas of an expanded buffer.
+        // internally, which does not zero-initialize new memory locations in an expanded buffer.
         (*buffer)[0] = '\0';
     }
     va_list argsCopy;
@@ -295,7 +295,7 @@ SCUnitError scunit_vrsnprintfc(
             return error;
         }
         // Ensure the buffer is null-terminated since `ensureSize()` uses `SCUNIT_REALLOC()`
-        // internally, which does not zero-initialize new memory areas of an expanded buffer.
+        // internally, which does not zero-initialize new memory locations in an expanded buffer.
         (*buffer)[0] = '\0';
     }
     int64_t offset = 0;
@@ -373,7 +373,7 @@ SCUnitError scunit_vrasnprintf(char** buffer, int64_t* size, const char* format,
             return error;
         }
         // Ensure the buffer is null-terminated since `ensureSize()` uses `SCUNIT_REALLOC()`
-        // internally, which does not zero-initialize new memory areas of an expanded buffer.
+        // internally, which does not zero-initialize new memory locations in an expanded buffer.
         (*buffer)[0] = '\0';
     }
     va_list argsCopy;
@@ -428,7 +428,7 @@ SCUnitError scunit_vrasnprintfc(
             return error;
         }
         // Ensure the buffer is null-terminated since `ensureSize()` uses `SCUNIT_REALLOC()`
-        // internally, which does not zero-initialize new memory areas of an expanded buffer.
+        // internally, which does not zero-initialize new memory locations in an expanded buffer.
         (*buffer)[0] = '\0';
     }
     int64_t offset = strnlen(*buffer, *size);

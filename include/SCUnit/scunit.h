@@ -51,7 +51,7 @@ typedef enum SCUnitOrder {
 } SCUnitOrder;
 
 /**
- * @brief Retrieves the version information of SCUnit.
+ * @brief Gets the version information of SCUnit.
  *
  * @return An `SCUnitVersion` containing the major, minor and patch version number of SCUnit.
  */

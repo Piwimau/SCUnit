@@ -6,61 +6,61 @@
 #include <stdio.h>
 #include <SCUnit/error.h>
 
-/** @brief Represents a color that may be used as the fore- or background for printing. */
+/** @brief Represents a color that may be used as the fore- or background when printing. */
 typedef enum SCUnitColor {
 
-    /** @brief Indicates a dark black color used as the fore- or background for printing. */
+    /** @brief Indicates a dark black color used as the fore- or background. */
     SCUNIT_COLOR_DARK_BLACK,
 
-    /** @brief Indicates a dark red color used as the fore- or background for printing. */
+    /** @brief Indicates a dark red color used as the fore- or background. */
     SCUNIT_COLOR_DARK_RED,
 
-    /** @brief Indicates a dark green color used as the fore- or background for printing. */
+    /** @brief Indicates a dark green color used as the fore- or background. */
     SCUNIT_COLOR_DARK_GREEN,
 
-    /** @brief Indicates a dark yellow color used as the fore- or background for printing. */
+    /** @brief Indicates a dark yellow color used as the fore- or background. */
     SCUNIT_COLOR_DARK_YELLOW,
 
-    /** @brief Indicates a dark blue color used as the fore- or background for printing. */
+    /** @brief Indicates a dark blue color used as the fore- or background. */
     SCUNIT_COLOR_DARK_BLUE,
 
-    /** @brief Indicates a dark magenta color used as the fore- or background for printing. */
+    /** @brief Indicates a dark magenta color used as the fore- or background. */
     SCUNIT_COLOR_DARK_MAGENTA,
 
-    /** @brief Indicates a dark cyan color used as the fore- or background for printing. */
+    /** @brief Indicates a dark cyan color used as the fore- or background. */
     SCUNIT_COLOR_DARK_CYAN,
 
-    /** @brief Indicates a dark white color used as the fore- or background for printing. */
+    /** @brief Indicates a dark white color used as the fore- or background. */
     SCUNIT_COLOR_DARK_WHITE,
 
-    /** @brief Indicates a dark default color used as the fore- or background for printing. */
+    /** @brief Indicates a dark default color used as the fore- or background. */
     SCUNIT_COLOR_DARK_DEFAULT,
 
-    /** @brief Indicates a bright black color used as the fore- or background for printing. */
+    /** @brief Indicates a bright black color used as the fore- or background. */
     SCUNIT_COLOR_BRIGHT_BLACK,
 
-    /** @brief Indicates a bright red color used as the fore- or background for printing. */
+    /** @brief Indicates a bright red color used as the fore- or background. */
     SCUNIT_COLOR_BRIGHT_RED,
 
-    /** @brief Indicates a bright green color used as the fore- or background for printing. */
+    /** @brief Indicates a bright green color used as the fore- or background. */
     SCUNIT_COLOR_BRIGHT_GREEN,
 
-    /** @brief Indicates a bright yellow color used as the fore- or background for printing. */
+    /** @brief Indicates a bright yellow color used as the fore- or background. */
     SCUNIT_COLOR_BRIGHT_YELLOW,
 
-    /** @brief Indicates a bright blue color used as the fore- or background for printing. */
+    /** @brief Indicates a bright blue color used as the fore- or background. */
     SCUNIT_COLOR_BRIGHT_BLUE,
 
-    /** @brief Indicates a bright magenta color used as the fore- or background for printing. */
+    /** @brief Indicates a bright magenta color used as the fore- or background. */
     SCUNIT_COLOR_BRIGHT_MAGENTA,
 
-    /** @brief Indicates a bright cyan color used as the fore- or background for printing. */
+    /** @brief Indicates a bright cyan color used as the fore- or background. */
     SCUNIT_COLOR_BRIGHT_CYAN,
 
-    /** @brief Indicates a bright white color used as the fore- or background for printing. */
+    /** @brief Indicates a bright white color used as the fore- or background. */
     SCUNIT_COLOR_BRIGHT_WHITE,
 
-    /** @brief Indicates a bright default color used as the fore- or background for printing. */
+    /** @brief Indicates a bright default color used as the fore- or background. */
     SCUNIT_COLOR_BRIGHT_DEFAULT
 
 } SCUnitColor;

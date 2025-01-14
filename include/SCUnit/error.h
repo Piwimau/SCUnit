@@ -2,8 +2,8 @@
 #define SCUNIT_ERROR_H
 
 /**
- * @brief Represents an enumeration of error codes used by SCUnit to indicate various success or
- * failure conditions.
+ * @brief Represents an enumeration of error codes used to indicate various success or failure
+ * conditions.
  */
 typedef enum SCUnitError {
 
@@ -11,7 +11,8 @@ typedef enum SCUnitError {
     SCUNIT_ERROR_NONE,
 
     /**
-     * @brief Indicates that one of the arguments of a function was out of range.
+     * @brief Indicates that one of the arguments of a function was outside the range of accepted
+     * values.
      *
      * @note This should not occur under normal circumstances. It is usually a sign of a serious
      * programming error.
@@ -21,25 +22,25 @@ typedef enum SCUnitError {
     /** @brief Indicates that a memory allocation failed due to an out-of-memory condition. */
     SCUNIT_ERROR_OUT_OF_MEMORY,
 
-    /** @brief Indicates that opening a stream (e. g. a file) failed. */
+    /** @brief Indicates that opening a stream failed. */
     SCUNIT_ERROR_OPENING_STREAM_FAILED,
 
-    /** @brief Indicates that reading from a stream (e. g. a file) failed. */
+    /** @brief Indicates that reading from a stream failed. */
     SCUNIT_ERROR_READING_STREAM_FAILED,
 
-    /** @brief Indicates that writing to a stream (e. g. a file) failed. */
+    /** @brief Indicates that writing to a stream failed. */
     SCUNIT_ERROR_WRITING_STREAM_FAILED,
 
     /** @brief Indicates that writing to a buffer failed. */
     SCUNIT_ERROR_WRITING_BUFFER_FAILED,
 
-    /** @brief Indicates that closing a stream (e. g. a file) failed. */
+    /** @brief Indicates that closing a stream failed. */
     SCUNIT_ERROR_CLOSING_STREAM_FAILED,
 
     /**
      * @brief Indicates that (re-)starting or stopping an `SCUnitTimer` failed.
      *
-     * @note See the documentation in `<SCUnit/timer.h>` to find out why this error could have
+     * @note See the documentation in `<SCUnit/timer.h>` to find out why this error may have
      * occurred.
      */
     SCUNIT_ERROR_TIMER_FAILED,
@@ -47,7 +48,7 @@ typedef enum SCUnitError {
     /**
      * @brief Indicates that an `SCUnitTimer` is already or still running.
      *
-     * @note See the documentation in `<SCUnit/timer.h>` to find out why this error could have
+     * @note See the documentation in `<SCUnit/timer.h>` to find out why this error may have
      * occurred. It is usually a sign of a serious programming error.
      */
     SCUNIT_ERROR_TIMER_RUNNING,
@@ -55,10 +56,10 @@ typedef enum SCUnitError {
     /**
      * @brief Indicates that an `SCUnitTimer` is not running yet or anymore.
      *
-     * @note See the documentation in `<SCUnit/timer.h>` to find out why this error could have
+     * @note See the documentation in `<SCUnit/timer.h>` to find out why this error may have
      * occurred. It is usually a sign of a serious programming error.
      */
-    SCUNIT_ERROR_TIMER_NOT_RUNNING,
+    SCUNIT_ERROR_TIMER_NOT_RUNNING
 
 } SCUnitError;
 
