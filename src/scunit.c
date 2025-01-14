@@ -20,7 +20,7 @@ typedef struct SCUnitConfig {
 typedef struct option SCUnitLongOption;
 
 /** @brief Version information of SCUnit. */
-static constexpr SCUnitVersion VERSION = { .major = 0, .minor = 2, .patch = 1 };
+static constexpr SCUnitVersion VERSION = { .major = 0, .minor = 3, .patch = 0 };
 
 /** @brief Growth factor used for resizing the array of suites. */
 static constexpr int64_t GROWTH_FACTOR = 2;
