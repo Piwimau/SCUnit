@@ -71,7 +71,7 @@ all platforms:
 * The automatic allocation, registration and deallocation of suites and tests is implemented using
   compiler-specific attributes called `__attribute__((constructor))` and
   `__attribute__((destructor))` (or `[[gnu::constructor]]` and `[[gnu::destructor]]` in the new C23
-  syntax), which cause an annotated function to be executed before `main()` itself is.
+  syntax), which cause an annotated function to be executed before (and after) `main()` itself is.
   These attributes are supported by GCC and Clang, but not by MSVC, which shouldn't be too much of
   an issue since it doesn't have adequate C23 support at the moment anyway. If you absolutely need
   the automatic registration in conjunction with MSVC, you should be able to find various
